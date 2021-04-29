@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "express": "^4.17.1",
+    "mysql": "^2.18.1",
+    "pngjs": "^6.0.0",
+    "socketio": "^1.0.0"
+  }
+}

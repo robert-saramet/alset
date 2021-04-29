@@ -1,0 +1,160 @@
+<html>
+	<head>
+		<link rel="preconnect" href="https://fonts.gstatic.com">
+		<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@600&display=swap" rel="stylesheet">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	</head>
+	<body>
+		
+		<img src = "map.png" id="map">
+		<canvas id="canvas" width="1000" height="1000"></canvas>
+		<input type="text" id="ID">
+		<button id="start">Show</button>
+		<style>
+			* {
+				font-family: "Open Sans";
+			}
+			#map {
+				border: 10px solid black;
+				border-radius: 10px;
+				max-width: 95%;
+				max-height: 85vh;
+				height: auto;
+				left: 0px;
+				top: 0px;
+	        }
+			#id {
+				position: absolute;
+				left: 10%;
+				top: 90%;
+				width: 40%;
+				height: 10%;
+				font-size: 5vh;
+				border-radius: 10%;
+				border-color: rgb(0, 100, 0, 1);
+				background-color: rgb(0, 60, 0, 1);
+				color: white;
+				outline: none;
+			}
+			#id:focus {
+				transition: 0.1s;
+				background-color: rgb(0, 80, 0, 1);
+			}
+			#start {
+				transition: 0.1s;
+				transition-timing-function: ease-out;
+				position: absolute;
+				left: 50%;
+				top: 90%;
+				width: 40%;
+				height: 10%;
+				text-align: center;
+				margin: auto;
+				font-size: 6vh;
+				border: none;
+				border-radius: 10%;
+				background-color: rgb(0, 100, 0, 1);
+				color: white;
+				outline: none;
+			}
+			#start:active {
+				transition: 0.15s;
+				transition-timing-function: ease-out;
+				background-color: rgb(0, 140, 0, 1);
+			}
+			#canvas {
+				position: absolute;
+				left: 0px;
+				top: 0px;
+			}
+		</style>
+		<script>
+			let dest_x = 0, dest_y = 0;
+			let car_x = 0, car_y = 0;
+			let ready_to_start = false;
+			let draw_location = false;
+			document.addEventListener("click", (event) => {
+				let map = document.getElementById("map");
+				let ID = document.getElementById("ID").value;
+				let button = document.getElementById("start");
+				let canvas = document.getElementById("canvas");
+				let ctx = canvas.getContext('2d')
+				
+				const map_width = map.clientWidth;
+				const map_height = map.clientHeight;
+				const circle_size = 10;
+
+				// Rendering
+				if (event.clientX < map_width && event.clientY < map_height) {
+					dest_x = (map_width / 10 + event.clientX) / (map_width / 5);
+					dest_y = (map_height / 10 + event.clientY) / (map_height / 5);
+					dest_x = Math.round(dest_x);
+					dest_y = Math.round(dest_y);
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+					ctx.beginPath();
+					ctx.fillStyle = "rgb(0, 100, 0, 1)";
+					ctx.arc(13 + dest_x * (map_width / 5) - (map_width / 10) + (circle_size / 2), 13 + dest_y * (map_height / 5) - (map_height / 10) + circle_size / 2, circle_size, 0, 2 * Math.PI);
+					ctx.closePath();
+					ctx.fill();
+				}
+				if (draw_location) {
+					ctx.beginPath();
+					ctx.fillStyle = "rgb(0, 0, 100, 1)";
+					ctx.arc(13 + car_x * (map_width / 5) - (map_width / 10) + (circle_size / 2), 13 + car_y * (map_height / 5) - (map_height / 10) + circle_size / 2, circle_size, 0, 2 * Math.PI);
+					ctx.closePath();
+					ctx.fill();
+				}
+				
+				// Start button (sends destination to server)
+				if(ready_to_start && dest_x && dest_y) {
+					const options = {
+						method: 'POST',
+						headers: {'Content-Type': 'application/json'},
+						body: JSON.stringify({name: ID, x: dest_x, y: dest_y})
+					};
+					button.onclick = async () => {
+						const response = await fetch('/api', options);
+						const text = await response.text();
+						if (response.status == 404) {
+							alert(text);
+						}
+					}
+					console.log("yas");
+				}
+
+				// Show button (retrieves current location from the server)
+				if (ID != "" && !ready_to_start) {
+					// Send the ID to the server and ask it to verify it
+					const options = {
+						method: 'POST',
+						headers: {'Content-Type': 'application/json'},
+						body: JSON.stringify({name: "verify_id", id: ID})
+					};
+					button.onclick = async () => {
+						const response = await fetch('/api', options);
+						if (response.status == 200) {
+							const res_data = await response.json();
+							car_x = res_data.x + 1;
+							car_y = res_data.y + 1;
+							// Rendering (start rendering beginning with this frame, so as not to wait for another click)
+							ctx.beginPath();
+							ctx.fillStyle = "rgb(0, 0, 100, 1)";
+							ctx.arc(13 + car_x * (map_width / 5) - (map_width / 10) + (circle_size / 2), 13 + car_y * (map_height / 5) - (map_height / 10) + circle_size / 2, circle_size, 0, 2 * Math.PI);
+							ctx.closePath();
+							ctx.fill();
+							
+							ready_to_start = true;
+							draw_location = true;
+							button.textContent = "Start";
+						}
+						else {
+							const res_data = await response.text();
+							draw_location = false;
+							alert(res_data);
+						}
+					};
+				}
+			});
+		</script>
+	</body>
+</html>
