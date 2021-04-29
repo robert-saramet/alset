@@ -1,21 +1,3 @@
-// github repo at https://github.com/robert-saramet/Line-Follower
-// using L298N library found at https://github.com/AndreaLombardo/L298N
-// using 5 sensor cytron maker line (digital inputs)
-
-/*
- ----------------   ----------------------    
- | Mega | L298N |   | Mega | Line Sensor |
- |------|-------|   |------|-------------|
- |  2   |  IN1  |   |  22  |      D1     |
- |  3   |  IN2  |   |  23  |      D2     |
- |  4   |  IN3  |   |  24  |      D3     |
- |  5   |  IN4  |   |  25  |      D4     |
- |  6   |  ENA  |   |  26  |      D5     |
- |  7   |  ENB  |   |---------------------
- ----------------   
-*/
-
-#include <Arduino.h>
 #include <L298NX2.h>
 
 #define motorA1 2
@@ -27,113 +9,80 @@
 
 #define rxPin 8
 
-short ls[6][2]; //ls[1-5][0] for line sensor pin numbers, ls[1-5][1] for sensor values
-int firstPin = 22; //first line sensor pin number
-float speedMultiplier = 1; //number to divide speed by
+#define MAKERLINE_AN  A0
+#define MAX_SPEED 255
+
+// PD control variables
+int adcMakerLine = 0;
+int adcSetPoint = 0;
+int proportional = 0;
+int lastProportional = 0;
+int derivative = 0;
+int powerDifference = 0;
+int motorLeft = 0;
+int motorRight = 0;
+unsigned long currentMillis = 0;
+unsigned long previousMillis = 0;
+const int interval = 10;
+
 
 L298NX2 robot(motorA_EN, motorA1, motorA2, motorB_EN, motorB1, motorB2); //initialize motor driver
 
-void steer(int speedA, int SpeedB){
-    robot.setSpeedA(speedA / speedMultiplier);
-    robot.setSpeedB(SpeedB /speedMultiplier);
+void setup () {
+   delay(2000);
+   // Place robot at the center of line
+  adcSetPoint = analogRead(MAKERLINE_AN);
+  pinMode(rxPin, INPUT_PULLUP);
 }
 
-//get value of each line sensor and store it in array
-void readLine(){
-    for(int i = 1; i <= 5; i++){
-        ls[i][1] = digitalRead(ls[i][0]);
+void loop()
+{
+  currentMillis = millis();
+  if (currentMillis - previousMillis > interval) {
+    previousMillis = currentMillis;
+    
+    adcMakerLine = analogRead(MAKERLINE_AN);
+    
+    if (adcMakerLine < 51) { // Out of line
+      robot.setSpeed(0);
     }
-}
-
-void followLine(){
-    readLine();
-    if (ls[1][1]==0 && ls[2][1]==0 && ls[3][1]==1 && ls[4][1]==0 && ls[5][1]==0){ 
-        robot.setSpeed(255 / speedMultiplier);
-        robot.forward();
-    }
-    else if (ls[1][1]==0 && ls[2][1]==1 && ls[3][1]==1 && ls[4][1]==1 && ls[5][1]==0){ 
-        robot.setSpeed(255 / speedMultiplier);
-        robot.forward();
-    }
-    else if (ls[1][1]==0 && ls[2][1]==1 && ls[3][1]==1 && ls[4][1]==0 && ls[5][1]==0){ 
-        steer(128, 255);
-        robot.forwardA();
-        robot.forwardB();
-    }
-    else if (ls[1][1]==0 && ls[2][1]==1 && ls[3][1]==0 && ls[4][1]==0 && ls[5][1]==0){ 
-        steer(64, 255);
-        robot.forwardA();
-        robot.forwardB();
-    }
-    else if (ls[1][1]==1 && ls[2][1]==1 && ls[3][1]==0 && ls[4][1]==0 && ls[5][1]==0){ 
-        steer(128, 255);
-        robot.backwardA();
-        robot.forwardB();
-    }
-    else if (ls[1][1]==1 && ls[2][1]==0 && ls[3][1]==0 && ls[4][1]==0 && ls[5][1]==0){ 
-        steer(255, 255);
-        robot.backwardA();
-        robot.forwardB();
-    }
-    else if (ls[1][1]==0 && ls[2][1]==0 && ls[3][1]==1 && ls[4][1]==1 && ls[5][1]==0){ 
-        robot.forwardA();
-        robot.forwardB();
-    }
-    else if (ls[1][1]==0 && ls[2][1]==0 && ls[3][1]==0 && ls[4][1]==1 && ls[5][1]==0){ 
-        steer(255, 64);
-        robot.forwardA();
-        robot.forwardB();
-    }
-    else if (ls[1][1]==0 && ls[2][1]==0 && ls[3][1]==0 && ls[4][1]==0 && ls[5][1]==1){ 
-        steer(255, 128);
-        robot.forwardA();
-        robot.backwardB();
-    }
-    else if (ls[1][1]==0 && ls[2][1]==0 && ls[3][1]==0 && ls[4][1]==0 && ls[5][1]==1){ 
-        steer(255, 255);
-        robot.forwardA();
-        robot.backwardB();
-    }
-    else if (ls[1][1]==0 && ls[2][1]==1 && ls[3][1]==1 && ls[4][1]==1 && ls[5][1]==0){ 
-        robot.setSpeed(255 / speedMultiplier);
-        robot.forward();
-    }
-    else if (ls[1][1]==1 && ls[2][1]==1 && ls[3][1]==1 && ls[4][1]==0 && ls[5][1]==0){ 
-        steer(128, 255);
-        robot.backwardA();
-        robot.forwardB();
-    }
-    else if (ls[1][1]==0 && ls[2][1]==0 && ls[3][1]==1 && ls[4][1]==1 && ls[5][1]==1){ 
-        steer(255, 128);
-        robot.forwardA();
-        robot.backwardB();
-    }
-    else{
-      //followLine();  if this this is uncommented and robot is off track it will stop receiving commands
-    }
-}
-
-void setup(){
-    Serial.begin(9600);
-    robot.setSpeed(255);
-    robot.stop();
-
-    //initialize line sensor pins as inputs
-    for(int i = 1; i <= 5; i++){
-        ls[i][0] = firstPin - 1 + i;
-        pinMode(ls[i][0], INPUT);
-    }
-
-    pinMode(rxPin, INPUT_PULLUP);
-}
-
-void loop() {
-    bool halt = !digitalRead(rxPin);
-    if (!halt) {
-        followLine();
-        Serial.println("Following line");
+    else if (adcMakerLine > 972) { // Detects cross line
+      robot.setSpeedA(MAX_SPEED-25);
+      robot.setSpeedB(MAX_SPEED-25);
     }
     else {
+      proportional = adcMakerLine - adcSetPoint;
+      derivative = proportional - lastProportional;
+      lastProportional = proportional;
+  
+      powerDifference = (proportional * 1.5) + (derivative * 5);
+  
+      if (powerDifference > MAX_SPEED) {
+        powerDifference = MAX_SPEED;
+      }
+      if (powerDifference < -MAX_SPEED) {
+        powerDifference = -MAX_SPEED;
+      }
+  
+      if (powerDifference < 0) {
+        motorLeft = MAX_SPEED + powerDifference;
+        motorRight = MAX_SPEED;
+      }
+      else {
+        motorLeft = MAX_SPEED;
+        motorRight = MAX_SPEED - powerDifference;
+      }
+
+      robot.setSpeedA(motorLeft);
+      robot.setSpeedB(motorRight);
+
+      bool halt = digitalRead(rxPin);
+      if (halt) {
         robot.stop();
+      }
+      else {
+        robot.forward(); 
+      }
     }
+  }
 }
