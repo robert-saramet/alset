@@ -54,3 +54,13 @@ At the moment, due to the project's small scale, we use an RFID scanner to simul
 The server is currently running on node.js express module.
 The security protocol is currently based on a 8 character unique device-specific code that comes with the car from the factory. When the user logs in on the website, they just enter the code, which is checked against the server's database. If the code matches any car, the instructions are sent to it. However, before trying to log in, the car must be connected to the server, or else the code will not be found.
 In the future, we will use MySQL for the database, hash the codes and also design a security protocol against bruteforce attacks (no more than 5 login requests can be sent from the same IP address in 10 minute).
+
+---
+
+### Third Party
+
+- #### [Mapillary Traffic Sign Dataset](https://www.mapillary.com/dataset/trafficsign)
+- #### [OpenCV](https://opencv.org/)
+- #### [PD Controller](https://tutorial.cytron.io/2019/08/21/esp32-pd-line-following-robot-with-maker-line/)
+- #### [Cascade Trainer GUI](https://amin-ahmadi.com/cascade-trainer-gui/)
+- #### [PySerial Library](https://github.com/pyserial/pyserial)
