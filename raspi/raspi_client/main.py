@@ -4,6 +4,7 @@
 import signs
 import cv2
 import numpy as np
+import sys
 import time
 from gpiozero import LED
 
@@ -49,4 +50,4 @@ while True:
 	except KeyboardInterrupt:
 		print("Closing now")
 		move.off()
-		exit()
+		sys.exit()
