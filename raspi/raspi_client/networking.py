@@ -5,7 +5,7 @@ import sys
 
 def ConnectToServer(pos):
 	id = sys.argv[1]
-	server_host = '192.168.0.100'
+	server_host = 'localhost'
 	server_port = '8080'
 	url = 'http://' + server_host + ':' + server_port + '/api'
 	ip = socket.gethostbyname(socket.gethostname())
