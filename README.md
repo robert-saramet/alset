@@ -64,3 +64,17 @@ In the future, we will use MySQL for the database, hash the codes and also desig
 - #### [PD Controller](https://tutorial.cytron.io/2019/08/21/esp32-pd-line-following-robot-with-maker-line/)
 - #### [Cascade Trainer GUI](https://amin-ahmadi.com/cascade-trainer-gui/)
 - #### [PySerial Library](https://github.com/pyserial/pyserial)
+
+---
+
+### Roles
+- #### Robert
+  -  Line following
+  - Joystick
+  - Obstacle detection
+  - Hardware & electronics
+- #### Bogdan
+  - Machine learning
+  - Image recognition
+  - Server
+  - Webpage
