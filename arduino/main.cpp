@@ -12,7 +12,6 @@
 #define impactSensor 18
 #define MAKERLINE_AN A0
 
-
 // PD variables
 byte MAX_SPEED = 255;
 int adcMakerLine = 0;
