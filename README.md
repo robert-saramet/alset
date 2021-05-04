@@ -67,6 +67,28 @@ In the future, we will use MySQL for the database, hash the codes and also desig
 - #### [Cascade Trainer GUI](https://amin-ahmadi.com/cascade-trainer-gui/)
 - #### [PySerial Library](https://github.com/pyserial/pyserial)
 
+### Parts
+
+- #### Robot
+  - [Raspberry Pi 3 B](https://cleste.ro/raspberry-pi-3-model-b.html)
+  - [Arduino Mega 2560](https://cleste.ro/placa-de-dezvoltare-compatibila-cu-arduino-mega-2560.html)
+  - [Wemos D1 Mini ESP8266](https://cleste.ro/placa-dezvoltare-esp12-mini-v2.html)
+  - [Chasis & Motors](https://www.optimusdigital.ro/ro/robotica-kit-uri-de-roboti/11883-kit-robot-cu-4-motoare-negru.html)
+  - [L298N Motor Driver](https://cleste.ro/modul-l298n-cu-punte-h-dubla.html)
+  - [U-blox NEO-6M GPS](https://cleste.ro/modul-gps-ublox-neo-6m-cu-antena.html)
+  - [RC522 RFID Reader](https://cleste.ro/modul-rfid-cu-card-si-tag.html)
+  - [Cytron Maker Line Sensor](https://www.optimusdigital.ro/ro/altele/12072-senzori-de-linie-maker-line-pentru-incepatori.html?search_query=maker+line&results=2)
+  - [2x HC-SR04 Ultrasound Sensors](https://cleste.ro/senzor-ultrasonic-hc-sr04.html)
+  - [Collision Switch](https://cleste.ro/modul-impact.html)
+  - [TP4056 Battery Charger](https://cleste.ro/modul-incarcare-baterii-litiu-1a-usb-c-tp4056.html)
+  - [2x Panel Switch](https://cleste.ro/buton-panou.html)
+  - [18650 Battery Holder](https://www.emag.ro/suport-acumulator-3-7v-18650-x-4-sloturi-s18650-4/pd/D8C49WBBM/)
+- #### Joystick
+  - [Lolin32 ESP32](https://cleste.ro/placa-dezvoltare-nodemcu-wifi-bluetooth-esp32.html)
+  - [2x PS2 Joystick](https://cleste.ro/modul-joystick-ps2-compatibil-arduino.html)
+  - [Passive Buzzer](https://cleste.ro/modul-buzzer-pasiv.html)
+  - [SSD 1306 OLED](https://cleste.ro/modul-buzzer-pasiv.html)
+
 ---
 
 ### Roles
