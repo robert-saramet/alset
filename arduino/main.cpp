@@ -9,10 +9,12 @@
 #define motorA_EN 6
 #define motorB_EN 7
 
+#define impactSensor 18
 #define MAKERLINE_AN A0
-#define MAX_SPEED 255
+
 
 // PD variables
+byte MAX_SPEED = 255;
 int adcMakerLine = 0;
 int adcSetPoint = 0;
 int proportional = 0;
@@ -26,38 +28,60 @@ unsigned long previousMillis = 0;
 const int interval = 10;
 
 // Set robot features
-bool follow_line = 1;
+bool follow_line = 0;
 bool avoid_obstacles = 1;
+bool impact_sensor = 1;
 bool comms = 0;
 
 bool leftTrack = 0;
+volatile bool impact = 0;
+volatile unsigned long impactTime;
 
 L298NX2 robot(motorA_EN, motorA1, motorA2, motorB_EN, motorB1, motorB2);
 Ultrasonic sonarL(33, 32);
 Ultrasonic sonarR(35, 34);
 
+void onImpact() {
+    digitalWrite(LED_BUILTIN, HIGH);
+    robot.setSpeed(255);
+    robot.backward();
+    impact = 1;
+    impactTime = millis();
+}
+
+void checkImpact() {
+    if (impact_sensor) {
+        noInterrupts();
+        if (impact) {
+            if (millis() - impactTime > 300) {
+                impact = 0;
+                robot.stop();
+                leftTrack = 1;
+            }
+        interrupts();
+        }
+    }
+}
+
 void checkObstacle() {
     if (avoid_obstacles) {
-        short distL = sonarL.read();
-        short distR = sonarR.read();
-
-        if (distL < 20 || distR < 20) {
+        if (sonarL.read() < 25 || sonarR.read() < 25) {
             leftTrack = 1;
             robot.setSpeed(255);
-            if (distL < distR) {
-                while (distR < 35) {
+            if (sonarL.read() < sonarR.read()) {
+                while (sonarL.read() < 35) {
                     robot.forwardA();
                     robot.backwardB();
                 }
             }
-            else if (distL > distR) {
-                while (distL < 35) {
+            else if (sonarL.read() > sonarR.read()) {
+                while (sonarR.read() < 35) {
                     robot.forwardB();
                     robot.backwardA();
                 }
             }
             else {
-                robot.backwardFor(400);
+                robot.backwardFor(300);
                 robot.reset();
             }
         }
@@ -79,47 +103,49 @@ void returnToLine() {
 }
 
 void followLine() {
-    currentMillis = millis();
-    if (currentMillis - previousMillis > interval) {
-        previousMillis = currentMillis;
+    if (follow_line) {
+        currentMillis = millis();
+        if (currentMillis - previousMillis > interval) {
+            previousMillis = currentMillis;
 
-        adcMakerLine = analogRead(MAKERLINE_AN);
+            adcMakerLine = analogRead(MAKERLINE_AN);
 
-        if (adcMakerLine < 51) {
-            // Outside line
-            robot.setSpeed(0);
-        }
-        else if (adcMakerLine > 972) { 
-            // Detects cross line
-            robot.setSpeedA(MAX_SPEED - 25);
-            robot.setSpeedB(MAX_SPEED - 25);
-        }
-        else {
-            proportional = adcMakerLine - adcSetPoint;
-            derivative = proportional - lastProportional;
-            lastProportional = proportional;
-
-            powerDifference = (proportional * 1.5) + (derivative * 5);
-
-            if (powerDifference > MAX_SPEED) {
-                powerDifference = MAX_SPEED;
+            if (adcMakerLine < 51) {
+                // Outside line
+                robot.setSpeed(0);
             }
-            if (powerDifference < -MAX_SPEED) {
-                powerDifference = -MAX_SPEED;
-            }
-
-            if (powerDifference < 0) {
-                motorLeft = MAX_SPEED + powerDifference;
-                motorRight = MAX_SPEED;
+            else if (adcMakerLine > 972) { 
+                // Detects cross line
+                robot.setSpeedA(MAX_SPEED - 25);
+                robot.setSpeedB(MAX_SPEED - 25);
             }
             else {
-                motorLeft = MAX_SPEED;
-                motorRight = MAX_SPEED - powerDifference;
-            }
+                proportional = adcMakerLine - adcSetPoint;
+                derivative = proportional - lastProportional;
+                lastProportional = proportional;
 
-            robot.setSpeedA(motorLeft);
-            robot.setSpeedB(motorRight);
-            robot.forward();
+                powerDifference = (proportional * 1.5) + (derivative * 5);
+
+                if (powerDifference > MAX_SPEED) {
+                    powerDifference = MAX_SPEED;
+                }
+                if (powerDifference < -MAX_SPEED) {
+                    powerDifference = -MAX_SPEED;
+                }
+
+                if (powerDifference < 0) {
+                    motorLeft = MAX_SPEED + powerDifference;
+                    motorRight = MAX_SPEED;
+                }
+                else {
+                    motorLeft = MAX_SPEED;
+                    motorRight = MAX_SPEED - powerDifference;
+                }
+
+                robot.setSpeedA(motorLeft);
+                robot.setSpeedB(motorRight);
+                robot.forward();
+            }
         }
     }
 }
@@ -128,9 +154,18 @@ void setup() {
     // Place robot at the center of line
     delay(2000);
     adcSetPoint = analogRead(MAKERLINE_AN);
+
+    pinMode(impactSensor, INPUT);
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, LOW);
+
+    if (impact_sensor) {
+        attachInterrupt(digitalPinToInterrupt(impactSensor), onImpact, FALLING);
+    }
 }
 
 void loop() {
+    checkImpact();
     checkObstacle();
     returnToLine();
     followLine();
