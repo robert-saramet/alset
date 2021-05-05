@@ -87,7 +87,7 @@ In the future, we will use MySQL for the database, hash the codes and also desig
   - [Lolin32 ESP32](https://cleste.ro/placa-dezvoltare-nodemcu-wifi-bluetooth-esp32.html)
   - [2x PS2 Joystick](https://cleste.ro/modul-joystick-ps2-compatibil-arduino.html)
   - [Passive Buzzer](https://cleste.ro/modul-buzzer-pasiv.html)
-  - [SSD 1306 OLED](https://cleste.ro/modul-buzzer-pasiv.html)
+  - [SSD 1306 OLED](https://cleste.ro/ecran-oled-0-91.html)
 
 ---
 
