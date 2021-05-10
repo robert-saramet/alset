@@ -1,6 +1,8 @@
 ### Description
 
-**Note: please check the [info](https://github.com/robert-saramet/Alset/tree/main/info) folder**. Alset is a small-scale proof-of-concept autonomous car which can react to traffic signs and follow a track whilst avoiding obstacles. The purpose of this project is to reduce the danger of traffic accidents. Each year, 1.35 million people are killed on roadways around the world. With Alset, we hope to make the world safer for everybody.
+#### **Note: please check the [info](https://github.com/robert-saramet/Alset/tree/main/info) folder**.
+
+Alset is a small-scale proof-of-concept autonomous car which can react to traffic signs and follow a track whilst avoiding obstacles. The purpose of this project is to reduce the danger of traffic accidents. Each year, 1.35 million people are killed on roadways around the world. With Alset, we hope to make the world safer for everybody.
 
 ![image](https://user-images.githubusercontent.com/44304738/117052703-b5778600-ad20-11eb-9ed1-ab6d96cddfa2.png)
 
