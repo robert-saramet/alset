@@ -1,6 +1,9 @@
 #include <Arduino.h>
 #include <L298NX2.h>
 #include <Ultrasonic.h>
+#include <SerialTransfer.h>
+#include <Servo.h>
+
 
 #define motorA1 2
 #define motorA2 3
@@ -11,6 +14,38 @@
 
 #define impactSensor 18
 #define MAKERLINE_AN A0
+
+#define laser 11
+#define servoPin 9
+
+// Set robot features
+bool follow_line = 1;
+bool avoid_obstacles = 0;
+bool return_line = 0;
+bool impact_sensor = 0;
+bool comms = 0;
+
+
+// Joystick variables
+struct STRUCT {
+  int16_t pos_x1;
+  int16_t pos_y1;
+  bool sw1;
+  int16_t pos_x2;
+  int16_t pos_y2;
+  bool sw2;
+} payload;
+
+int mapX1, mapY1;
+bool btn1 = 0;
+
+int mapX2, mapY2;
+bool btn2 = 0;
+
+bool brake = 1;
+bool pwr = 1;
+int pos = 130;
+
 
 // PD variables
 byte MAX_SPEED = 255;
@@ -26,19 +61,18 @@ unsigned long currentMillis = 0;
 unsigned long previousMillis = 0;
 const int interval = 10;
 
-// Set robot features
-bool follow_line = 0;
-bool avoid_obstacles = 1;
-bool impact_sensor = 1;
-bool comms = 0;
 
 bool leftTrack = 0;
 volatile bool impact = 0;
 volatile unsigned long impactTime;
 
+
 L298NX2 robot(motorA_EN, motorA1, motorA2, motorB_EN, motorB1, motorB2);
 Ultrasonic sonarL(33, 32);
 Ultrasonic sonarR(35, 34);
+Servo servo;
+SerialTransfer myTransfer;
+
 
 void onImpact() {
     digitalWrite(LED_BUILTIN, HIGH);
@@ -88,16 +122,18 @@ void checkObstacle() {
 }
 
 void returnToLine() {
-    if (leftTrack) {
-        // Check if still on line
-        while (analogRead(MAKERLINE_AN) < 51) {
-            //Search for line
-            robot.setSpeedA(255);
-            robot.setSpeedB(160);
-            robot.forwardFor(40);
-            robot.reset();
-        }
+    if (return_line){
+        if (leftTrack) {
+            // Check if still on line
+            while (analogRead(MAKERLINE_AN) < 51) {
+                //Search for line
+                robot.setSpeedA(255);
+                robot.setSpeedB(160);
+                robot.forwardFor(40);
+                robot.reset();
+            }
         leftTrack = 0;
+        }
     }
 }
 
@@ -109,7 +145,7 @@ void followLine() {
 
             adcMakerLine = analogRead(MAKERLINE_AN);
 
-            if (adcMakerLine < 51) {
+            if (adcMakerLine < 103) {
                 // Outside line
                 robot.setSpeed(0);
             }
@@ -125,17 +161,21 @@ void followLine() {
 
                 powerDifference = (proportional * 1.5) + (derivative * 5);
 
+                // Go forward at full speed
                 if (powerDifference > MAX_SPEED) {
                     powerDifference = MAX_SPEED;
                 }
+                // Go backward at full speed
                 if (powerDifference < -MAX_SPEED) {
                     powerDifference = -MAX_SPEED;
                 }
 
+                // Turn right
                 if (powerDifference < 0) {
                     motorLeft = MAX_SPEED + powerDifference;
                     motorRight = MAX_SPEED;
                 }
+                // Turn left
                 else {
                     motorLeft = MAX_SPEED;
                     motorRight = MAX_SPEED - powerDifference;
@@ -149,23 +189,103 @@ void followLine() {
     }
 }
 
+void getJoystick() {
+    if (myTransfer.available()) {
+    myTransfer.rxObj(payload);
+    mapX1 = payload.pos_x1;
+    mapY1 = payload.pos_y1;
+    bool btnOld1 = btn1;
+    btn1 = payload.sw1;
+
+    mapX2 = payload.pos_x2;
+    mapY2 = payload.pos_y2;
+    bool btnOld2 = btn2;
+    btn2 = payload.sw2;
+
+    //Serial.print("mapX: ");
+    //Serial.println(mapX);
+    Serial.print("mapY2: ");
+    Serial.println(mapY2);
+    Serial.print("btn2: ");
+    Serial.println(btn2);
+    
+
+    if (btn1 != btnOld1) {
+      if (btn1) {
+        brake = !brake;
+      }
+    }
+
+    if (brake) {
+      robot.stop();
+    } else {
+      if (mapY1 >= 0) {
+        robot.forward();
+      } else {
+        robot.backward();
+        mapY1 *= -1;
+      }
+      if (mapX1 >= 0) {
+        robot.setSpeedB(mapY1);
+        robot.setSpeedA(mapY1 - mapX1);
+      } else {
+        mapX1 *= -1;
+        robot.setSpeedB(mapY1 - mapX1);
+        robot.setSpeedA(mapY1);
+      }
+    }
+
+    if (mapX2 > 100 || mapX2 < -100) {
+      if (mapX2 < 0) {
+        if (pos >= 2) {
+          pos -= 2;
+        }
+      } else {
+        if (pos <= 168) {
+          pos += 2;
+        }
+      }
+      servo.write(pos);
+    }
+
+    if (btn2 != btnOld2) {
+      if (btn2) {
+        pwr = !pwr;
+      }
+      if (pwr) {
+        digitalWrite(laser, HIGH);
+      } else {
+        digitalWrite(laser, LOW);
+      }
+    } 
+  }
+}
+
 void setup() {
-    // Place robot at the center of line
-    delay(2000);
+    delay(2000); // Place robot at the center of line
     adcSetPoint = analogRead(MAKERLINE_AN);
 
-    pinMode(impactSensor, INPUT);
-    pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(LED_BUILTIN, LOW);
+    if (comms) {
+        Serial3.begin(4800);
+        myTransfer.begin(Serial3);
+    }
 
     if (impact_sensor) {
+        pinMode(impactSensor, INPUT);
+        pinMode(LED_BUILTIN, OUTPUT);
+        digitalWrite(LED_BUILTIN, LOW);
         attachInterrupt(digitalPinToInterrupt(impactSensor), onImpact, FALLING);
     }
 }
 
 void loop() {
     checkImpact();
-    checkObstacle();
-    returnToLine();
-    followLine();
+    if (!comms) {
+        checkObstacle();
+        returnToLine();
+        followLine();
+    }
+    else {
+        getJoystick();
+    }
 }
