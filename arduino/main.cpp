@@ -1,6 +1,9 @@
 #include <Arduino.h>
 #include <L298NX2.h>
 #include <Ultrasonic.h>
+#include <Wire.h>
+#include <Adafruit_Sensor_Calibration.h>
+#include <Adafruit_AHRS.h>
 #include <SerialTransfer.h>
 #include <Servo.h>
 
@@ -24,6 +27,7 @@ bool avoid_obstacles = 0;
 bool return_line = 0;
 bool impact_sensor = 0;
 bool comms = 0;
+bool imu = 0;
 
 
 // Joystick variables
@@ -62,6 +66,10 @@ unsigned long previousMillis = 0;
 const int interval = 10;
 
 
+// IMU variables
+float roll, pitch, heading;
+
+
 bool leftTrack = 0;
 volatile bool impact = 0;
 volatile unsigned long impactTime;
@@ -70,8 +78,17 @@ volatile unsigned long impactTime;
 L298NX2 robot(motorA_EN, motorA1, motorA2, motorB_EN, motorB1, motorB2);
 Ultrasonic sonarL(33, 32);
 Ultrasonic sonarR(35, 34);
+Ultrasonic sonarM(37, 36);
 Servo servo;
 SerialTransfer myTransfer;
+
+Adafruit_Sensor *accelerometer, *gyroscope, *magnetometer;
+#include "NXP_FXOS_FXAS.h"
+Adafruit_Madgwick filter;
+Adafruit_Sensor_Calibration_EEPROM cal;
+#define FILTER_UPDATE_RATE_HZ 100
+#define IMU_BUFFER 10
+uint32_t timestamp;
 
 
 void onImpact() {
@@ -81,6 +98,7 @@ void onImpact() {
     impact = 1;
     impactTime = millis();
 }
+
 
 void checkImpact() {
     if (impact_sensor) {
@@ -96,8 +114,13 @@ void checkImpact() {
     }
 }
 
+
 void checkObstacle() {
     if (avoid_obstacles) {
+        if(sonarM.read() < 15){
+            robot.backwardFor(100);
+            robot.reset();
+        }
         if (sonarL.read() < 25 || sonarR.read() < 25) {
             leftTrack = 1;
             robot.setSpeed(255);
@@ -121,6 +144,7 @@ void checkObstacle() {
     }
 }
 
+
 void returnToLine() {
     if (return_line){
         if (leftTrack) {
@@ -136,6 +160,7 @@ void returnToLine() {
         }
     }
 }
+
 
 void followLine() {
     if (follow_line) {
@@ -188,6 +213,7 @@ void followLine() {
         }
     }
 }
+
 
 void getJoystick() {
     if (myTransfer.available()) {
@@ -261,6 +287,52 @@ void getJoystick() {
   }
 }
 
+
+void getAngles() {
+    if (imu) {
+        float gx, gy, gz;
+        static uint8_t counter = 0;
+
+        if ((millis() - timestamp) < (1000 / FILTER_UPDATE_RATE_HZ)) {
+            return;
+        }
+
+        timestamp = millis();
+
+        // Read the motion sensors
+        sensors_event_t accel, gyro, mag;
+        accelerometer->getEvent(&accel);
+        gyroscope->getEvent(&gyro);
+        magnetometer->getEvent(&mag);
+
+        cal.calibrate(mag);
+        cal.calibrate(accel);
+        cal.calibrate(gyro);
+
+        // Gyroscope needs to be converted from Rad/s to Degree/s
+        // the rest are not unit-important
+        gx = gyro.gyro.x * SENSORS_RADS_TO_DPS;
+        gy = gyro.gyro.y * SENSORS_RADS_TO_DPS;
+        gz = gyro.gyro.z * SENSORS_RADS_TO_DPS;
+
+        // Update the SensorFusion filter
+        filter.update(gx, gy, gz, 
+                        accel.acceleration.x, accel.acceleration.y, accel.acceleration.z, 
+                        mag.magnetic.x, mag.magnetic.y, mag.magnetic.z);
+
+        // only print the calculated output once in a while
+        if (counter++ <= IMU_BUFFER) {
+            return;
+        }
+        counter = 0;
+
+        roll = filter.getRoll();
+        pitch = filter.getPitch();
+        heading = filter.getYaw();
+    }
+}
+
+
 void setup() {
     delay(2000); // Place robot at the center of line
     adcSetPoint = analogRead(MAKERLINE_AN);
@@ -276,7 +348,23 @@ void setup() {
         digitalWrite(LED_BUILTIN, LOW);
         attachInterrupt(digitalPinToInterrupt(impactSensor), onImpact, FALLING);
     }
+
+    if (imu) {
+      cal.begin();
+      cal.loadCalibration();
+      init_sensors();
+
+      accelerometer->printSensorDetails();
+      gyroscope->printSensorDetails();
+      magnetometer->printSensorDetails();
+
+      setup_sensors();
+      filter.begin(FILTER_UPDATE_RATE_HZ);
+      timestamp = millis();
+      Wire.setClock(400000); // 400 KHz
+    }
 }
+
 
 void loop() {
     checkImpact();
