@@ -17,17 +17,16 @@
 
 #define impactSensor 18
 #define MAKERLINE_AN A0
-
 #define laser 11
 #define servoPin 9
 
 // Set robot features
-bool follow_line = 1;
-bool avoid_obstacles = 0;
-bool return_line = 0;
-bool impact_sensor = 0;
-bool comms = 0;
-bool imu = 0;
+#define follow_line 0
+#define avoid_obstacles 1
+#define return_line 0
+#define impact_sensor 0
+#define comms 0
+#define imu 0
 
 
 // Joystick variables
@@ -70,6 +69,7 @@ const int interval = 10;
 float roll, pitch, heading;
 
 
+// Control variables
 bool leftTrack = 0;
 volatile bool impact = 0;
 volatile unsigned long impactTime;
@@ -82,6 +82,7 @@ Ultrasonic sonarM(37, 36);
 Servo servo;
 SerialTransfer myTransfer;
 
+// For IMU
 Adafruit_Sensor *accelerometer, *gyroscope, *magnetometer;
 #include "NXP_FXOS_FXAS.h"
 Adafruit_Madgwick filter;
@@ -91,6 +92,62 @@ Adafruit_Sensor_Calibration_EEPROM cal;
 uint32_t timestamp;
 
 
+// Function forward-declaration
+void onImpact();
+void checkImpact();
+void checkObstacle();
+void followLine();
+void returnToLine();
+void getJoystick();
+void getAngles();
+
+
+void setup() {
+    delay(3000); // Place robot at the center of line
+    adcSetPoint = analogRead(MAKERLINE_AN);
+
+    if (comms) {
+        // This connection is used for the joystick
+        Serial3.begin(4800);
+        myTransfer.begin(Serial3);
+    }
+
+    if (impact_sensor) {
+        // Configure impact sensor pins & attach interrupt
+        pinMode(impactSensor, INPUT);
+        pinMode(LED_BUILTIN, OUTPUT);
+        digitalWrite(LED_BUILTIN, LOW);
+        attachInterrupt(digitalPinToInterrupt(impactSensor), onImpact, FALLING);
+    }
+
+    if (imu) {
+    // Prepare IMU
+      cal.begin();
+      cal.loadCalibration();
+      init_sensors();
+
+      setup_sensors();
+      filter.begin(FILTER_UPDATE_RATE_HZ);
+      timestamp = millis();
+      Wire.setClock(400000); // 400 KHz
+    }
+}
+
+
+void loop() {
+    checkImpact();
+    if (!comms) { // When using joystick, switch to manual mode 
+        checkObstacle();
+        returnToLine();
+        followLine();
+    }
+    else {
+        getJoystick();
+    }
+}
+
+
+// Handle interrupt
 void onImpact() {
     digitalWrite(LED_BUILTIN, HIGH);
     robot.setSpeed(255);
@@ -100,9 +157,10 @@ void onImpact() {
 }
 
 
+// Check impact state
 void checkImpact() {
     if (impact_sensor) {
-        noInterrupts();
+        noInterrupts(); // Avoid interference
         if (impact) {
             if (millis() - impactTime > 300) {
                 impact = 0;
@@ -118,10 +176,10 @@ void checkImpact() {
 void checkObstacle() {
     if (avoid_obstacles) {
         if(sonarM.read() < 15){
-            robot.backwardFor(100);
+            robot.backwardFor(50);
             robot.reset();
         }
-        if (sonarL.read() < 25 || sonarR.read() < 25) {
+        if (sonarL.read() < 30 || sonarR.read() < 30) {
             leftTrack = 1;
             robot.setSpeed(255);
             if (sonarL.read() < sonarR.read()) {
@@ -136,7 +194,7 @@ void checkObstacle() {
                     robot.backwardA();
                 }
             }
-            else {
+            else { // If both sensors return same value, to avoid getting stuck
                 robot.backwardFor(300);
                 robot.reset();
             }
@@ -151,10 +209,10 @@ void returnToLine() {
             // Check if still on line
             while (analogRead(MAKERLINE_AN) < 51) {
                 //Search for line
-                robot.setSpeedA(255);
-                robot.setSpeedB(160);
-                robot.forwardFor(40);
-                robot.reset();
+                robot.setSpeedA(255);   //---------------//
+                robot.setSpeedB(160);   // TODO          //
+                robot.forwardFor(40);   // USE GYRO HERE //
+                robot.reset();          //---------------//
             }
         leftTrack = 0;
         }
@@ -216,75 +274,76 @@ void followLine() {
 
 
 void getJoystick() {
-    if (myTransfer.available()) {
-    myTransfer.rxObj(payload);
-    mapX1 = payload.pos_x1;
-    mapY1 = payload.pos_y1;
-    bool btnOld1 = btn1;
-    btn1 = payload.sw1;
+    if (comms) {
+        if (myTransfer.available()) {
+            // Load packet from ESP
+            myTransfer.rxObj(payload);
+            // Values for motors
+            mapX1 = payload.pos_x1;
+            mapY1 = payload.pos_y1;
+            bool btnOld1 = btn1;
+            btn1 = payload.sw1;
 
-    mapX2 = payload.pos_x2;
-    mapY2 = payload.pos_y2;
-    bool btnOld2 = btn2;
-    btn2 = payload.sw2;
+            // Values for servo
+            mapX2 = payload.pos_x2;
+            mapY2 = payload.pos_y2;
+            bool btnOld2 = btn2;
+            btn2 = payload.sw2;
 
-    //Serial.print("mapX: ");
-    //Serial.println(mapX);
-    Serial.print("mapY2: ");
-    Serial.println(mapY2);
-    Serial.print("btn2: ");
-    Serial.println(btn2);
-    
+            // Check brake button toggle
+            if (btn1 != btnOld1) {
+                if (btn1) {
+                    brake = !brake;
+                }
+            }
 
-    if (btn1 != btnOld1) {
-      if (btn1) {
-        brake = !brake;
-      }
-    }
+            if (brake) {  // Press joystick button to stop robot
+                robot.stop();
+            } else {
+                // Set robot speed & direction
+                if (mapY1 >= 0) {
+                    robot.forward();
+                } else {
+                    robot.backward();
+                    mapY1 *= -1;
+                }
+                if (mapX1 >= 0) {
+                    robot.setSpeedB(mapY1);
+                    robot.setSpeedA(mapY1 - mapX1);
+                } else {
+                    mapX1 *= -1;
+                    robot.setSpeedB(mapY1 - mapX1);
+                    robot.setSpeedA(mapY1);
+                }
+            }
 
-    if (brake) {
-      robot.stop();
-    } else {
-      if (mapY1 >= 0) {
-        robot.forward();
-      } else {
-        robot.backward();
-        mapY1 *= -1;
-      }
-      if (mapX1 >= 0) {
-        robot.setSpeedB(mapY1);
-        robot.setSpeedA(mapY1 - mapX1);
-      } else {
-        mapX1 *= -1;
-        robot.setSpeedB(mapY1 - mapX1);
-        robot.setSpeedA(mapY1);
-      }
-    }
+            // Change servo position
+            if (mapX2 > 100 || mapX2 < -100) {
+                if (mapX2 < 0) {
+                    if (pos >= 2) {
+                        pos -= 2;
+                    }
+                } else {
+                    if (pos <= 168) {
+                        pos += 2;
+                    }
+                }
+                servo.write(pos);
+            }
 
-    if (mapX2 > 100 || mapX2 < -100) {
-      if (mapX2 < 0) {
-        if (pos >= 2) {
-          pos -= 2;
+            // Check laser button toggle
+            if (btn2 != btnOld2) {
+                if (btn2) {
+                    pwr = !pwr;
+                }
+                if (pwr) {
+                    digitalWrite(laser, HIGH);
+                } else {
+                    digitalWrite(laser, LOW);
+                }
+            } 
         }
-      } else {
-        if (pos <= 168) {
-          pos += 2;
-        }
-      }
-      servo.write(pos);
-    }
-
-    if (btn2 != btnOld2) {
-      if (btn2) {
-        pwr = !pwr;
-      }
-      if (pwr) {
-        digitalWrite(laser, HIGH);
-      } else {
-        digitalWrite(laser, LOW);
-      }
-    } 
-  }
+    }    
 }
 
 
@@ -305,6 +364,7 @@ void getAngles() {
         gyroscope->getEvent(&gyro);
         magnetometer->getEvent(&mag);
 
+        // Read calibration data from EEPROM
         cal.calibrate(mag);
         cal.calibrate(accel);
         cal.calibrate(gyro);
@@ -320,7 +380,7 @@ void getAngles() {
                         accel.acceleration.x, accel.acceleration.y, accel.acceleration.z, 
                         mag.magnetic.x, mag.magnetic.y, mag.magnetic.z);
 
-        // only print the calculated output once in a while
+        // Only returns the calculated output once in a while
         if (counter++ <= IMU_BUFFER) {
             return;
         }
@@ -329,51 +389,5 @@ void getAngles() {
         roll = filter.getRoll();
         pitch = filter.getPitch();
         heading = filter.getYaw();
-    }
-}
-
-
-void setup() {
-    delay(2000); // Place robot at the center of line
-    adcSetPoint = analogRead(MAKERLINE_AN);
-
-    if (comms) {
-        Serial3.begin(4800);
-        myTransfer.begin(Serial3);
-    }
-
-    if (impact_sensor) {
-        pinMode(impactSensor, INPUT);
-        pinMode(LED_BUILTIN, OUTPUT);
-        digitalWrite(LED_BUILTIN, LOW);
-        attachInterrupt(digitalPinToInterrupt(impactSensor), onImpact, FALLING);
-    }
-
-    if (imu) {
-      cal.begin();
-      cal.loadCalibration();
-      init_sensors();
-
-      accelerometer->printSensorDetails();
-      gyroscope->printSensorDetails();
-      magnetometer->printSensorDetails();
-
-      setup_sensors();
-      filter.begin(FILTER_UPDATE_RATE_HZ);
-      timestamp = millis();
-      Wire.setClock(400000); // 400 KHz
-    }
-}
-
-
-void loop() {
-    checkImpact();
-    if (!comms) {
-        checkObstacle();
-        returnToLine();
-        followLine();
-    }
-    else {
-        getJoystick();
     }
 }
