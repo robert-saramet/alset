@@ -95,7 +95,7 @@ uint32_t timestamp;
 // Function forward-declaration
 void onImpact();
 void checkImpact();
-void checkObstacle();
+bool detectObstacle();
 void followLine();
 void returnToLine();
 void getJoystick();
@@ -137,7 +137,7 @@ void setup() {
 void loop() {
     checkImpact();
     if (!comms) { // When using joystick, switch to manual mode 
-        checkObstacle();
+        detectObstacle();
         returnToLine();
         followLine();
     }
@@ -173,11 +173,12 @@ void checkImpact() {
 }
 
 
-void checkObstacle() {
+bool detectObstacle() {
     if (avoid_obstacles) {
-        if(sonarM.read() < 15){
-            robot.backwardFor(50);
-            robot.reset();
+        if(sonarM.read() < 20){
+            robot.backward();
+            delay(80);
+            return 0;
         }
         if (sonarL.read() < 30 || sonarR.read() < 30) {
             leftTrack = 1;
@@ -198,7 +199,9 @@ void checkObstacle() {
                 robot.backwardFor(300);
                 robot.reset();
             }
+            return 0;
         }
+        return 1;
     }
 }
 
@@ -244,29 +247,44 @@ void followLine() {
 
                 powerDifference = (proportional * 1.5) + (derivative * 5);
 
-                // Go forward at full speed
                 if (powerDifference > MAX_SPEED) {
-                    powerDifference = MAX_SPEED;
-                }
-                // Go backward at full speed
-                if (powerDifference < -MAX_SPEED) {
-                    powerDifference = -MAX_SPEED;
+                    robot.forwardA();
+                    robot.backwardB();
+                    motorLeft = MAX_SPEED;
+                    if (powerDifference < 2 * MAX_SPEED) {
+                        motorRight = powerDifference - MAX_SPEED;
+                    }
+                    else {
+                        motorRight = MAX_SPEED;
+                    }
                 }
 
-                // Turn right
-                if (powerDifference < 0) {
-                    motorLeft = MAX_SPEED + powerDifference;
+                else if (powerDifference < -MAX_SPEED) {
+                    robot.backwardA();
+                    robot.forwardB();
                     motorRight = MAX_SPEED;
+                    if (powerDifference > 2 * -MAX_SPEED) {
+                        motorLeft = -MAX_SPEED - powerDifference;
+                    }
+                    else {
+                        motorLeft = MAX_SPEED;
+                    }
                 }
-                // Turn left
-                else {
-                    motorLeft = MAX_SPEED;
-                    motorRight = MAX_SPEED - powerDifference;
+
+                else if (powerDifference < MAX_SPEED  && powerDifference > -MAX_SPEED) {
+                    robot.forward();
+                    if (powerDifference > 0) {
+                        motorLeft = MAX_SPEED;
+                        motorRight = MAX_SPEED - powerDifference;
+                    }
+                    else {
+                        motorLeft = MAX_SPEED - powerDifference;
+                        motorRight = MAX_SPEED;
+                    }
                 }
 
                 robot.setSpeedA(motorLeft);
                 robot.setSpeedB(motorRight);
-                robot.forward();
             }
         }
     }
