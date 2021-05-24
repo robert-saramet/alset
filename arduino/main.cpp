@@ -8,18 +8,6 @@
 #include <Servo.h>
 
 
-#define motorA1 2
-#define motorA2 3
-#define motorB1 4
-#define motorB2 5
-#define motorA_EN 6
-#define motorB_EN 7
-
-#define impactSensor 18
-#define MAKERLINE_AN A0
-#define laser 11
-#define servoPin 9
-
 // Set robot features
 #define follow_line 0
 #define avoid_obstacles 1
@@ -27,6 +15,21 @@
 #define impact_sensor 0
 #define comms 0
 #define imu 0
+
+
+// Motor driver pins
+#define motorA1 2
+#define motorA2 3
+#define motorB1 4
+#define motorB2 5
+#define motorA_EN 6
+#define motorB_EN 7
+
+// Mixed module pins
+#define impactSensor 18
+#define MAKERLINE_AN A0
+#define laser 11
+#define servoPin 9
 
 
 // Joystick variables
@@ -118,6 +121,11 @@ void setup() {
         pinMode(LED_BUILTIN, OUTPUT);
         digitalWrite(LED_BUILTIN, LOW);
         attachInterrupt(digitalPinToInterrupt(impactSensor), onImpact, FALLING);
+    }
+
+    if (avoid_obstacles && !(comms || follow_line)) {
+      robot.setSpeed(255);
+      robot.forward();
     }
 
     if (imu) {
