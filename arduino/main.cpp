@@ -172,13 +172,14 @@ void setup() {
 
 void loop() {
     checkImpact();
-    if (!comms) { // When using joystick, switch to manual mode 
+    if (!(comms || ir_remote)) { // When using joystick, switch to manual mode 
         detectObstacle();
         returnToLine();
         followLine();
     }
     else {
         getJoystick();
+        getIR();
     }
 }
 
