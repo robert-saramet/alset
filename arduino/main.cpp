@@ -88,6 +88,7 @@ volatile unsigned long impactTime;
 #include "TinyIRReceiver.cpp.h"
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
+long debounce = millis();
 
 // IR Remote keys
 #define OK 0x1C
@@ -238,8 +239,8 @@ bool detectObstacle() {
             }
             return 0;
         }
-        return 1;
     }
+    return 1;
 }
 
 
@@ -405,9 +406,9 @@ int getIR(uint16_t irAdress, uint8_t irCommand, bool isRepeat) {
     if (ir_remote) {
         if (irCommand == OK) {
             if (!isRepeat) {
-                long debounce = millis();
                 if (debounce - millis() > 100) {
                     brake != brake;
+                    debounce = millis();
                 } 
             }
         }
