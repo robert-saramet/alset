@@ -6,15 +6,20 @@
 #include <Adafruit_AHRS.h>
 #include <SerialTransfer.h>
 #include <Servo.h>
+#include <TinyIRReceiver.h>
 
 
 // Set robot features
 #define follow_line 0
-#define avoid_obstacles 1
+#define avoid_obstacles 0
 #define return_line 0
 #define impact_sensor 0
 #define comms 0
 #define imu 0
+#define leds 0
+#define autoOff 0
+#define serial_log 1
+#define ir_remote 1
 
 
 // Motor driver pins
@@ -78,6 +83,20 @@ volatile bool impact = 0;
 volatile unsigned long impactTime;
 
 
+// IR Remote setup
+#define IR_INPUT_PIN 19
+#include "TinyIRReceiver.cpp.h"
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+
+// IR Remote keys
+#define OK 0x1C
+#define UP 0x18
+#define DOWN 0x52
+#define LEFT 0x8
+#define RIGHT 0x5A
+
+
 L298NX2 robot(motorA_EN, motorA1, motorA2, motorB_EN, motorB1, motorB2);
 Ultrasonic sonarL(33, 32);
 Ultrasonic sonarR(35, 34);
@@ -102,12 +121,17 @@ bool detectObstacle();
 void followLine();
 void returnToLine();
 void getJoystick();
+int getIR();
 void getAngles();
 
 
 void setup() {
     delay(3000); // Place robot at the center of line
     adcSetPoint = analogRead(MAKERLINE_AN);
+
+    if (serial_log) {
+        Serial.begin(9600);
+    }
 
     if (comms) {
         // This connection is used for the joystick
@@ -126,6 +150,10 @@ void setup() {
     if (avoid_obstacles && !(comms || follow_line)) {
       robot.setSpeed(255);
       robot.forward();
+    }
+
+    if (ir_remote) {
+        initPCIInterruptForTinyReceiver();
     }
 
     if (imu) {
@@ -370,6 +398,41 @@ void getJoystick() {
             } 
         }
     }    
+}
+
+int getIR(uint16_t irAdress, uint8_t irCommand, bool isRepeat) {
+    if (ir_remote) {
+        if (irCommand == OK) {
+            if (!isRepeat) {
+                long debounce = millis();
+                if (debounce - millis() > 100) {
+                    brake != brake;
+                } 
+            }
+        }
+        else {
+            if (!brake) {
+                robot.setSpeed(255);
+                switch (irCommand) {
+                    case UP:
+                        robot.forward();
+                        break;
+                    case DOWN:
+                        robot.backward();
+                        break;
+                    case LEFT:
+                        robot.backwardA();
+                        robot.forwardB();
+                        break;
+                    case RIGHT:
+                        robot.forwardA();
+                        robot.backwardB();
+                        break;
+                }
+            }
+        }
+    }
+    return irCommand;
 }
 
 
