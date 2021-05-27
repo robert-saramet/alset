@@ -7,6 +7,7 @@
 #include <SerialTransfer.h>
 #include <Servo.h>
 #include <TinyIRReceiver.h>
+#include <LiquidCrystal_I2C.h>
 
 
 // Set robot features
@@ -20,6 +21,7 @@
 #define autoOff 0
 #define serial_log 1
 #define ir_remote 1
+#define display 1
 
 
 // Motor driver pins
@@ -104,6 +106,7 @@ Ultrasonic sonarR(35, 34);
 Ultrasonic sonarM(37, 36);
 Servo servo;
 SerialTransfer myTransfer;
+LiquidCrystal_I2C lcd(0x27, 20, 4);  
 
 // For IMU
 Adafruit_Sensor *accelerometer, *gyroscope, *magnetometer;
@@ -167,6 +170,22 @@ void setup() {
       filter.begin(FILTER_UPDATE_RATE_HZ);
       timestamp = millis();
       Wire.setClock(400000); // 400 KHz
+    }
+
+    if (display) {
+        lcd.init();
+        lcd.backlight();
+        lcd.setCursor(0, 0);
+        lcd.print("Welcome to Alset");
+        lcd.setCursor(0, 1);
+        lcd.print("Click to proceed");
+
+        // wait for button press
+        lcd.clear();
+        // while not button press
+            //display lines for current encoder position
+        lcd.clear();
+        lcd.noBacklight();
     }
 }
 
