@@ -29,8 +29,8 @@ const int interval = 10;
 L298NX2 robot(motorA_EN, motorA1, motorA2, motorB_EN, motorB1, motorB2); //initialize motor driver
 
 void setup () {
-   delay(2000);
-   // Place robot at the center of line
+  delay(2000);
+  // Place robot at the center of line
   adcSetPoint = analogRead(MAKERLINE_AN);
   pinMode(rxPin, INPUT_PULLUP);
 }
@@ -40,49 +40,61 @@ void loop()
   currentMillis = millis();
   if (currentMillis - previousMillis > interval) {
     previousMillis = currentMillis;
-    
+
     adcMakerLine = analogRead(MAKERLINE_AN);
-    
+
     if (adcMakerLine < 51) { // Out of line
       robot.setSpeed(0);
     }
     else if (adcMakerLine > 972) { // Detects cross line
-      robot.setSpeedA(MAX_SPEED-25);
-      robot.setSpeedB(MAX_SPEED-25);
+      robot.setSpeedA(MAX_SPEED - 25);
+      robot.setSpeedB(MAX_SPEED - 25);
     }
     else {
       proportional = adcMakerLine - adcSetPoint;
       derivative = proportional - lastProportional;
       lastProportional = proportional;
-  
+
       powerDifference = (proportional * 1.5) + (derivative * 5);
-  
+
       if (powerDifference > MAX_SPEED) {
-        powerDifference = MAX_SPEED;
-      }
-      if (powerDifference < -MAX_SPEED) {
-        powerDifference = -MAX_SPEED;
-      }
-  
-      if (powerDifference < 0) {
-        motorLeft = MAX_SPEED + powerDifference;
-        motorRight = MAX_SPEED;
-      }
-      else {
+        robot.forwardA();
+        robot.backwardB();
         motorLeft = MAX_SPEED;
-        motorRight = MAX_SPEED - powerDifference;
+        if (powerDifference < 2 * MAX_SPEED) {
+          motorRight = powerDifference - MAX_SPEED;
+        }
+        else {
+          motorRight = MAX_SPEED;
+        }
+      }
+
+      else if (powerDifference < -MAX_SPEED) {
+        robot.backwardA();
+        robot.forwardB();
+        motorRight = MAX_SPEED;
+        if (powerDifference > 2 * -MAX_SPEED) {
+          motorLeft = -MAX_SPEED - powerDifference;
+        }
+        else {
+          motorLeft = MAX_SPEED;
+        }
+      }
+
+      else if (powerDifference < MAX_SPEED  && powerDifference > -MAX_SPEED) {
+        robot.forward();
+        if (powerDifference > 0) {
+          motorLeft = MAX_SPEED;
+          motorRight = MAX_SPEED - powerDifference;
+        }
+        else {
+          motorLeft = MAX_SPEED - powerDifference;
+          motorRight = MAX_SPEED;
+        }
       }
 
       robot.setSpeedA(motorLeft);
       robot.setSpeedB(motorRight);
-
-      bool halt = digitalRead(rxPin);
-      if (halt) {
-        robot.stop();
-      }
-      else {
-        robot.forward(); 
-      }
     }
   }
 }
