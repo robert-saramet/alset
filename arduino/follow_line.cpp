@@ -55,7 +55,7 @@ void loop()
       derivative = proportional - lastProportional;
       lastProportional = proportional;
 
-      powerDifference = (proportional * 1.5) + (derivative * 5);
+      powerDifference = (proportional * 1) + (derivative * 4);
 
       if (powerDifference > MAX_SPEED) {
         robot.forwardA();
