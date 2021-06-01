@@ -51,11 +51,19 @@
     #endif
     #define STR_HELPER(x) #x
     #define STR(x) STR_HELPER(x)
+    #define OK 0x1C
+    #define UP 0x18
+    #define DOWN 0x52
+    #define LEFT 0x8
+    #define RIGHT 0x5A
 #endif
 
 #if comms
     #include <SerialTransfer.h>
     #include <Servo.h>
+    #ifndef ESP_PORT
+        #define ESP_PORT Serial3
+    #endif
 #endif
 
 #if display
@@ -68,11 +76,12 @@ class Robot {
         bool detectObstacle;
         void followLine;
     private:
-        L298NX2 motors;
-        Ultrasonic sonarL;
-        Ultrasonic sonarR;
-        Ultrasonic sonarF;
+        L298NX2 m_motors;
+        Ultrasonic m_sonarL;
+        Ultrasonic m_sonarR;
+        Ultrasonic m_sonarF;
 
+        // Line following variables
         int m_adcMakerLine = 0;
         int m_adcSetPoint = 0;
         int m_proportional = 0;
@@ -84,4 +93,9 @@ class Robot {
         unsigned long m_currentMillis = 0;
         unsigned long m_previousMillis = 0;
         const int m_interval = 10;
+
+        // Joystick variables
+        bool m_brake = 1;
+        bool m_pwr = 1;
+        int m_pos = 130;
 }
