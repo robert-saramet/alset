@@ -58,12 +58,12 @@ Robot::followLine() {
 
         if (m_adcMakerLine < 103) {
             // Outside line
-            robot.setSpeed(0);
+            m_motors.setSpeed(0);
         }
         else if (m_adcMakerLine > 972) { 
             // Cross line / intersection
-            robot.setSpeedA(MAX_SPEED - 25);
-            robot.setSpeedB(MAX_SPEED - 25);
+            m_motors.setSpeedA(MAX_SPEED - 25);
+            m_motors.setSpeedB(MAX_SPEED - 25);
         }
         else {
             m_proportional = m_adcMakerLine - m_adcSetPoint;
@@ -73,8 +73,8 @@ Robot::followLine() {
             m_powerDifference = (m_proportional * 1.5) + (derivative * 5);
 
             if (m_powerDifference > MAX_SPEED) {
-                robot.forwardA();
-                robot.backwardB();
+                m_motors.forwardA();
+                m_motors.backwardB();
                 m_motorLeft = MAX_SPEED;
                 if (m_powerDifference < 2 * MAX_SPEED) {
                     m_motorRight = m_powerDifference - MAX_SPEED;
@@ -85,8 +85,8 @@ Robot::followLine() {
             }
 
             else if (m_powerDifference < -MAX_SPEED) {
-                robot.backwardA();
-                robot.forwardB();
+                m_motors.backwardA();
+                m_motors.forwardB();
                 m_motorRight = MAX_SPEED;
                 if (m_powerDifference > 2 * -MAX_SPEED) {
                     m_motorLeft = -MAX_SPEED - m_powerDifference;
@@ -97,7 +97,7 @@ Robot::followLine() {
             }
 
             else if (m_powerDifference < MAX_SPEED  && m_powerDifference > -MAX_SPEED) {
-                robot.forward();
+                m_motors.forward();
                 if (m_powerDifference > 0) {
                     m_motorLeft = MAX_SPEED;
                     m_motorRight = MAX_SPEED - m_powerDifference;
@@ -108,8 +108,8 @@ Robot::followLine() {
                 }
             }
 
-            robot.setSpeedA(m_motorLeft);
-            robot.setSpeedB(m_motorRight);
+            m_motors.setSpeedA(m_motorLeft);
+            m_motors.setSpeedB(m_motorRight);
         }
     }
 }
@@ -154,28 +154,27 @@ Robot::getJoystick() {
         }
 
         if (m_brake) { // Press joystick button to stop robot
-            robot.stop();
+            m_motors.stop();
         }
         else {
             // Set robot speed & direction
             if (mapY1 >= 0) {
-                robot.forward();
+                m_motors.forward();
             }
             else {
-                robot.backward();
+                m_motors.backward();
                 mapY1 *= -1;
             }
             if (mapX1 >= 0) {
-                robot.setSpeedB(mapY1);
-                robot.setSpeedA(mapY1 - mapX1);
+                m_motors.setSpeedB(mapY1);
+                m_motors.setSpeedA(mapY1 - mapX1);
             }
             else {
                 mapX1 *= -1;
-                robot.setSpeedB(mapY1 - mapX1);
-                robot.setSpeedA(mapY1);
+                m_motors.setSpeedB(mapY1 - mapX1);
+                m_motors.setSpeedA(mapY1);
             }
-        }
-
+        }m_motors
         // Change m_servo position
         if (mapX2 > 100 || mapX2 < -100) {
             if (mapX2 < 0) {
