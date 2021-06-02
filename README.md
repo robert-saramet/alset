@@ -15,14 +15,14 @@ Alset is a small-scale proof-of-concept autonomous car which can react to traffi
 - [x] Wireless joystick control
 - [x] Camera pan & tilt
 - [x] Server for picking destination
-- [x] Pathfinding (WIP) 
+- [x] Pathfinding
 
 ### To-Do
-- [ ] Crossroad detection & steering
+- [x] Crossroad detection & steering
 - [ ] React to other traffic signs
 - [ ] Positioning via RFID scanner & tags
-- [ ] Better power management
-- [ ] Hardware revision
+- [x] Better power management
+- [x] Hardware revision
 - [ ] Produce PCB
 - [ ] Design custom chasis
 
