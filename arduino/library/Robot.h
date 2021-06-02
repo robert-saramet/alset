@@ -72,14 +72,23 @@
 
 class Robot {
     public:
-        Robot()
+        Robot();
         bool detectObstacle;
         void followLine;
+        void getJoystick;
+        float getAngles;
+
+        float roll, pitch, heading
+
     private:
         L298NX2 m_motors;
         Ultrasonic m_sonarL;
         Ultrasonic m_sonarR;
         Ultrasonic m_sonarF;
+        SerialTransfer m_myTransfer;
+        Servo m_servo;
+        Adafruit_Madgwick filter;
+        Adafruit_Sensor_Calibration_EEPROM cal;
 
         // Line following variables
         int m_adcMakerLine = 0;
@@ -98,4 +107,9 @@ class Robot {
         bool m_brake = 1;
         bool m_pwr = 1;
         int m_pos = 130;
+
+        // IMU variables
+        uint32_t m_timestamp;
+        static uint8_t m_counter;
+        
 }
