@@ -2,12 +2,11 @@
 
 #define motorA1 2
 #define motorA2 3
-#define motorB1 4
-#define motorB2 5
+#define motorB1 5
+#define motorB2 4
 #define motorA_EN 6
 #define motorB_EN 7
-
-#define rxPin 8
+#define STBY 9
 
 #define MAKERLINE_AN  A0
 #define MAX_SPEED 255
@@ -26,13 +25,14 @@ unsigned long previousMillis = 0;
 const int interval = 10;
 
 
-L298NX2 robot(motorA_EN, motorA1, motorA2, motorB_EN, motorB1, motorB2); //initialize motor driver
+L298NX2 robot(motorB_EN, motorB1, motorB2, motorA_EN, motorA1, motorA2); //initialize motor driver
 
 void setup () {
   delay(2000);
   // Place robot at the center of line
   adcSetPoint = analogRead(MAKERLINE_AN);
-  pinMode(rxPin, INPUT_PULLUP);
+  pinMode(STBY, OUTPUT);
+  digitalWrite(STBY, HIGH);
 }
 
 void loop()
