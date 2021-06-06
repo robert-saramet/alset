@@ -9,7 +9,7 @@ import time
 from gpiozero import LED
 
 # not used for beta version
-import gps
+import rfid
 import networking as net # server comms
 
 move = LED(26) # gpio comms
