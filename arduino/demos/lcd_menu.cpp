@@ -8,23 +8,22 @@
 Rotary rotary = Rotary(ENC_A, ENC_B);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-int position = 0;
+int pos = 0;
+int lastPos;
 int progress = 1;
-bool choice = 0;
 int mode = 0;
 
 void setup() {
-    Serial.begin(57600);
-    
     lcd.init();
     lcd.backlight();
+    lcd.noAutoscroll();
 
-    pinMode(ENC_SW, INPUT);
+    pinMode(ENC_SW, INPUT_PULLUP);
     
-    while (!digitalRead(ENC_SW)) {
+    while (digitalRead(ENC_SW)) {
         updateLCD();
+        delay(100);
     }
-  
 }
 
 void loop() {
@@ -33,63 +32,74 @@ void loop() {
 int getEncoder() {
   unsigned char dir = rotary.process();
   if (dir == DIR_CW) {
-    position++;
+    pos++;
   } else if (dir == DIR_CCW) {
-    position--;
+    pos--;
   }
-  if (position < 0) {
-    //position = 0;
-  }
-  return position;
+  if (pos < 0) {}
+  return pos;
 }
 
 void clearLine(int line) {
-    lcd.setCursor(0, line);
-    for (int i = 0; i < 16; i++);
-        lcd.print(" ");
+    for (int i = 0; i < 16; i++) {
+        lcd.setCursor(i, line);
+        lcd.print(' ');
+    }
 }
 
 void finish() {
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print(F("All-set"));
+    lcd.print(F("All-set ;)"));
     lcd.setCursor(0, 1);
-    lcd.print("Enjoy");
+    lcd.print("Enjoy!");
+    delay(3000);
+    Serial.println(F("Entered FINISH"));
 }
 
 void welcome() {
+    lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print(F("Welcome to Alset"));
     lcd.setCursor(0, 1);
-    lcd.print(F("Click to continue"));
-    while (!digitalRead(ENC_SW)) {};
+    lcd.print(F("Click to proceed"));
+    while (digitalRead(ENC_SW)) {};
     progress = 2;
 }
 
 void askSettings() {
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print(F("Change settings?"))
+    lcd.print(F("Change settings?"));
     lcd.setCursor(0, 1);
     lcd.print(F("No"));
-
-    while (!digitalRead(ENC_SW)) {
-        if (position != getEncoder()) {
+    delay(300);
+    
+    getEncoder();
+    lastPos = pos;
+    while (digitalRead(ENC_SW)) {
+        unsigned long unDelay = millis();
+        while (millis() - unDelay < 500) {
+            getEncoder(); 
+        }
+        if (pos != lastPos) {
+            lastPos = pos;
             clearLine(1);
             lcd.setCursor(0, 1);
-            if (position % 2) { // Allows constant rotation
+            if ((pos % 2) == 0) { // Allows constant rotation
                 lcd.print(F("No"));
-                choice = 0;
             }
             else {
                 lcd.print(F("Yes"));
-                choice = 1;
             }
         }
     }
-
-    if (choice) {
-        progress = 3;
+        
+    if ((pos % 2) == 0) {
+        progress = 0;
+    }
+    else {
+      progress = 3;
     }
 }
 
@@ -99,25 +109,33 @@ void baseMode() {
     lcd.print(F("Select base mode:"));
     lcd.setCursor(0, 1);
     lcd.print(F("Line following"));
+    delay(100);
     
-    position = 0;
-    while (!digitalRead(ENC_SW)) {
-        if (position != getEncoder()) {
+    pos = getEncoder();
+    lastPos = pos;
+    while (digitalRead(ENC_SW)) {
+        unsigned long unDelay = millis();
+        while (millis() - unDelay < 500) {
+            getEncoder(); 
+        }
+        if (pos != lastPos) {
+            lastPos = pos;
             clearLine(1);
             lcd.setCursor(0, 1);
             printBaseModes();
         }
     }
-    mode = position;
+    mode = pos;
+    progress = 0;
 }
 
 void printBaseModes() {
-    switch (position) {
+    switch (pos) {
         case 0:
             lcd.print(F("Line following"));
             break;
         case 1:
-            lcd.print(F("Obstacle detection"));
+            lcd.print(F("Avoid obstacles"));
             break;
         case 2:
             lcd.print(F("WiFi joystick"));
@@ -129,11 +147,11 @@ void printBaseModes() {
             lcd.print(F("Machine vision"));
             break;
         default:
-            if (position > 4) {
-                position = 0;
+            if (pos > 4) {
+                pos = 0;
             }
-            else if (position < 0) {
-                position = 4;
+            else if (pos < 0) {
+                pos = 4;
             }
     }
 }
@@ -142,15 +160,15 @@ void updateLCD() {
     switch (progress) {
         case 0: // Setup finished screen
             finish();
-            break;
+            //break;
         case 1: // Welcome screen
             welcome();
-            break;
+            //break;
         case 2: // Setup choice screen
             askSettings();
-            break;
+            //break;
         case 3: // Base mode choice screen
             baseMode();
-            break;
+            //break;
     }
 }
