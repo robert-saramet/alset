@@ -24,8 +24,6 @@ void setup() {
     while (!digitalRead(ENC_SW)) {
         updateLCD();
     }
-        getEncoder();
-    }
   
 }
 
@@ -108,7 +106,6 @@ void baseMode() {
             clearLine(1);
             lcd.setCursor(0, 1);
             printBaseModes();
-            }
         }
     }
     mode = position;
@@ -127,7 +124,7 @@ void printBaseModes() {
             break;
         case 3:
             lcd.print(F("Phone bluetooth"));
-            break:
+            break;
         case 4:
             lcd.print(F("Machine vision"));
             break;
@@ -155,4 +152,5 @@ void updateLCD() {
         case 3: // Base mode choice screen
             baseMode();
             break;
+    }
 }
