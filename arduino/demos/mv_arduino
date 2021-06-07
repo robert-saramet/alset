@@ -26,7 +26,7 @@ unsigned long previousMillis = 0;
 const int interval = 10;
 
 
-L298NX2 robot(motorA_EN, motorA1, motorA2, motorB_EN, motorB1, motorB2); //initialize motor driver
+L298NX2 robot (motorB_EN, motorB1, motorB2, motorA_EN, motorA1, motorA2);
 
 void setup () {
   Serial.begin(9600);
