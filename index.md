@@ -1,4 +1,4 @@
-![image](https://user-images.githubusercontent.com/44304738/117052703-b5778600-ad20-11eb-9ed1-ab6d96cddfa2.png)
+![image](https://github.com/robert-saramet/Alset/raw/main/docs/images/014.JPG)
 
 ### Features
 - [x] Stop sign detection (stops for 3 seconds)
