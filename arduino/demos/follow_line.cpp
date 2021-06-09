@@ -88,7 +88,7 @@ void loop()
           motorRight = MAX_SPEED - powerDifference;
         }
         else {
-          motorLeft = MAX_SPEED - powerDifference;
+          motorLeft = powerDifference - MAX_SPEED;
           motorRight = MAX_SPEED;
         }
       }
