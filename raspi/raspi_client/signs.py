@@ -7,6 +7,64 @@ def FindDistanceToObject(object):
 	#cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
 	dist = width_at_50 / w / 2
 	return dist
+# ..............
+# ..............
+#  ___B........
+# |.............
+# A.............
+
+
+import cv2
+
+# magic number for number of pixels for 0.5 distance
+width_at_50 = 200
+def FindDistanceToObject(object):
+	(x, y, w, h) = object
+	#cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+	d = width_at_50 / w / 2
+	return d
+
+def DetectCascade(image, cascade):
+	return cascade.detectMultiScale(image, scaleFactor=1.1, minNeighbors=5, minSize=(24, 24), flags = cv2.CASCADE_SCALE_IMAGE)
+
+class StopSignHandler:
+	distance = 0
+	min_recog_distance = 2 # minimum distance for the sign to be recognized (also compensates for lag)
+	in_range = False # true if the sign is within 1 meter
+	in_range_time = 0.0
+	in_range_max_time = 3 # after in_range_max_time seconds, the car will leave
+	ready = True
+	halt = False
+	forward = False
+	cascade = cv2.CascadeClassifier("stop_cascade.xml")
+	def Update(self, frame, delta_time, send_stop_func, send_start_func):
+		self.halt = False
+		self.forward = False
+		stop_signs = DetectCascade(frame, self.cascade)
+		if len(stop_signs):
+			if self.in_range_time > self.in_range_max_time and self.ready: # delay
+				self.in_range_time -= 10 * delta_time # instead of in_range_time = 0, this gives room for error
+				print(self.in_range_time)
+				if self.in_range_time < 0:
+					self.in_range_time = 0
+				self.forward = True
+				print("Waited 3 seconds") # for debug purposes
+				self.ready = False
+				send_start_func()
+			if len(stop_signs):
+				#if not self.halt:
+					#send_stop_func()
+				self.distance = FindDistanceToObject(stop_signs[0])
+				if self.distance < self.min_recog_distance and self.ready:
+					self.in_range_time += delta_time
+					if self.in_range_time < 3:
+						self.halt = True
+						send_stop_func()
+			return stop_signs[0]
+		else:
+			self.ready = True
+			send_start_func()
+			return (0, 0, 0, 0)
 
 
 def DetectCascade(image, cascade):
