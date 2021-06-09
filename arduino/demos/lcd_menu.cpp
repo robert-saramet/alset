@@ -9,7 +9,7 @@ Rotary rotary = Rotary(ENC_A, ENC_B);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 int pos = 0;
-int lastPos;
+int lastPos = pos;
 int progress = 1;
 int mode = 0;
 
@@ -18,11 +18,13 @@ void setup() {
     lcd.backlight();
     lcd.noAutoscroll();
 
+    Serial.begin(9600);
     pinMode(ENC_SW, INPUT_PULLUP);
     
     while (digitalRead(ENC_SW)) {
         updateLCD();
-        delay(100);
+        delay(200);
+        Serial.println("main loop");
     }
 }
 
@@ -36,7 +38,9 @@ int getEncoder() {
   } else if (dir == DIR_CCW) {
     pos--;
   }
-  if (pos < 0) {}
+  if (pos < 0) {
+    //pos = 0;
+  }
   return pos;
 }
 
@@ -82,28 +86,41 @@ void askSettings() {
         while (millis() - unDelay < 500) {
             getEncoder(); 
         }
+        Serial.println(F("WHILE statement reached"));
+        Serial.print(F("POS: "));
+        Serial.println(pos);
         if (pos != lastPos) {
             lastPos = pos;
             clearLine(1);
             lcd.setCursor(0, 1);
             if ((pos % 2) == 0) { // Allows constant rotation
                 lcd.print(F("No"));
+                Serial.println(F("NO -  don't change"));
             }
             else {
                 lcd.print(F("Yes"));
+                Serial.println(F("YES - change"));
             }
+            Serial.println(F("IF statement reached"));
         }
     }
+
+
+    Serial.print(F("POS: "));
+    Serial.println(pos);
         
     if ((pos % 2) == 0) {
         progress = 0;
+        Serial.println(F("Going to FINISH"));
     }
     else {
       progress = 3;
+      Serial.println(F("Going to MODES"));
     }
 }
 
 void baseMode() {
+    Serial.println("Entered MODES");
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print(F("Select base mode:"));
@@ -127,6 +144,7 @@ void baseMode() {
     }
     mode = pos;
     progress = 0;
+    Serial.println("FINISHED MODES");
 }
 
 void printBaseModes() {
@@ -159,16 +177,18 @@ void printBaseModes() {
 void updateLCD() {
     switch (progress) {
         case 0: // Setup finished screen
+            Serial.println("Before finish");
             finish();
-            //break;
+            Serial.println("After finish");
+            break;
         case 1: // Welcome screen
             welcome();
-            //break;
+            break;
         case 2: // Setup choice screen
             askSettings();
-            //break;
+            break;
         case 3: // Base mode choice screen
             baseMode();
-            //break;
+            break;
     }
 }
