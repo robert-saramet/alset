@@ -1,5 +1,5 @@
-# if a stop sign is detected and in range, wait for it to be in sight
-# for 3 seconds, then continue moving until it isn't detected anymore
+# if a stop sign is detected, wait for it to be in sight for 3 seconds,
+# then continue moving until it isn't detected anymore
 
 import signs
 from signs import cv2
@@ -12,6 +12,13 @@ from gpiozero import LED
 stop_handler = signs.StopSignHandler()
 last_tick_halt = 0
 
+host_ip = '192.168.0.115'
+init_position = (0, 0)
+destination = net.ConnectToServer(init_position, (host_ip, '8080'))
+gps_instructions = gps.GenerateCommandQueue(init_position, destination)
+print(gps_instructions)
+exit()
+
 # 26 = comms pin
 # on() -> sends 1
 # off() -> sends 0
@@ -19,10 +26,10 @@ comms_pin = LED(26)
 comms_pin.on()
 
 def SendMsg_Stop():
-	print("STOP RIGHT THERE U MF")
+	#print("STOP RIGHT THERE U MF")
 	comms_pin.off()
 def SendMsg_Forward():
-	print("MOVE UR FCKING ASS U PIECE OF SHIT")
+	#print("MOVE UR FCKING ASS U PIECE OF SHIT")
 	comms_pin.on()
 	
 
@@ -31,7 +38,7 @@ delta_time_start = 0.0
 delta_time_end = 0.0
 while True:
 	delta_time = delta_time_end - delta_time_start
-	delta_time_start = time.perf_counter() # Time in seconds
+	delta_time_start = time.perf_counter() # time in seconds
 
 	# Camera input
 	frame = cap.read()[1]
