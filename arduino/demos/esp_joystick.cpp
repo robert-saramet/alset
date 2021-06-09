@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <L298NX2.h>
-//#include <Servo.h>
 #include <SerialTransfer.h>
 
 #define motorA1 2
@@ -32,7 +31,6 @@ int pos = 130;
 
 SerialTransfer myTransfer;
 L298NX2 robot(motorB_EN, motorB1, motorB2, motorA_EN, motorA1, motorA2);
-//Servo servo;
 
 void setup() {
   Serial.begin(9600);
