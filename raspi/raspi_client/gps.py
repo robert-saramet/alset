@@ -67,6 +67,7 @@ def GenerateCommandQueue(position, destination):
 			command_queue.append("right")		
 	for i in range(abs(x_offset)):
 		command_queue.append("forward")
+	return command_queue
 def Start(pos, dest):
 	global destination, position
 	destination = dest
