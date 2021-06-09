@@ -19,6 +19,7 @@
 // Control variables
 volatile bool impact = 0;
 volatile unsigned long impactTime;
+bool leftTrack = 0;
 
 L298NX2 robot(motorB_EN, motorB1, motorB2, motorA_EN, motorA1, motorA2);
 Ultrasonic sonarL(33, 32);
@@ -29,11 +30,10 @@ Ultrasonic sonarB(39, 38);
 // Function forward-declaration
 void onImpact();
 void checkImpact();
-bool checkObstacle();
+bool detectObstacle();
 
 void setup() {
     delay(3000); // Place robot at the center of line
-    adcSetPoint = analogRead(MAKERLINE_AN);
 
     pinMode(STBY, OUTPUT);
     digitalWrite(STBY, HIGH);
@@ -54,7 +54,7 @@ void setup() {
 
 void loop() {
     checkImpact();
-    while (!checkObstacle()) {
+    while (!detectObstacle()) {
         robot.setSpeed(255);
         robot.forward();
     }
@@ -85,7 +85,7 @@ void checkImpact() {
     }
 }
 
-bool checkObstacle() {
+bool detectObstacle() {
     if (avoid_obstacles) {
       if (sonarB.read() > 5) {
         if (sonarF.read() < 20){
