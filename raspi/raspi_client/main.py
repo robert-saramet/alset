@@ -5,7 +5,6 @@ import signs
 from signs import cv2
 import gps
 import numpy as np
-import serial
 import time
 import _thread as thread
 import networking as net
