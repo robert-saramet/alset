@@ -44,7 +44,7 @@ void loop()
     adcMakerLine = analogRead(MAKERLINE_AN);
 
     if (adcMakerLine < 51) { // Out of line
-      robot.setSpeed(0);
+      //robot.setSpeed(0);
     }
     else if (adcMakerLine > 972) { // Detects cross line
       robot.setSpeedA(MAX_SPEED - 25);
