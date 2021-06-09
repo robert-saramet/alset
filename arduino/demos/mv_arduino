@@ -6,6 +6,7 @@
 #define motorB2 5
 #define motorA_EN 6
 #define motorB_EN 7
+#define STBY 9
 
 #define rxPin 8
 
@@ -34,18 +35,19 @@ void setup () {
   // Place robot at the center of line
   adcSetPoint = analogRead(MAKERLINE_AN);
   pinMode(rxPin, INPUT_PULLUP);
+  pinMode(STBY, OUTPUT);
   robot.setSpeed(255);
 }
 
 void loop() {
+  followLine();
   bool go = digitalRead(rxPin);
   Serial.println(go);
   if (go) {
-    followLine();
-    //robot.forward();
+    digitalWrite(STBY, HIGH);
   }
   else {
-    robot.stop();
+    digitalWrite(STBY, LOW);
     delay(100);
   }
 }
