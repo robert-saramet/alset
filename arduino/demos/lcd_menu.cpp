@@ -18,7 +18,6 @@ void setup() {
     lcd.backlight();
     lcd.noAutoscroll();
 
-    Serial.begin(9600);
     pinMode(ENC_SW, INPUT_PULLUP);
     
     while (digitalRead(ENC_SW)) {
@@ -58,7 +57,6 @@ void finish() {
     lcd.setCursor(0, 1);
     lcd.print("Enjoy!");
     delay(3000);
-    Serial.println(F("Entered FINISH"));
 }
 
 void welcome() {
@@ -86,41 +84,28 @@ void askSettings() {
         while (millis() - unDelay < 500) {
             getEncoder(); 
         }
-        Serial.println(F("WHILE statement reached"));
-        Serial.print(F("POS: "));
-        Serial.println(pos);
         if (pos != lastPos) {
             lastPos = pos;
             clearLine(1);
             lcd.setCursor(0, 1);
             if ((pos % 2) == 0) { // Allows constant rotation
                 lcd.print(F("No"));
-                Serial.println(F("NO -  don't change"));
             }
             else {
                 lcd.print(F("Yes"));
-                Serial.println(F("YES - change"));
             }
-            Serial.println(F("IF statement reached"));
         }
     }
-
-
-    Serial.print(F("POS: "));
-    Serial.println(pos);
         
     if ((pos % 2) == 0) {
         progress = 0;
-        Serial.println(F("Going to FINISH"));
     }
     else {
       progress = 3;
-      Serial.println(F("Going to MODES"));
     }
 }
 
 void baseMode() {
-    Serial.println("Entered MODES");
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print(F("Select base mode:"));
@@ -144,7 +129,6 @@ void baseMode() {
     }
     mode = pos;
     progress = 0;
-    Serial.println("FINISHED MODES");
 }
 
 void printBaseModes() {
@@ -177,9 +161,7 @@ void printBaseModes() {
 void updateLCD() {
     switch (progress) {
         case 0: // Setup finished screen
-            Serial.println("Before finish");
             finish();
-            Serial.println("After finish");
             break;
         case 1: // Welcome screen
             welcome();
