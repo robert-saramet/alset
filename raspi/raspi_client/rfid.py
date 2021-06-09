@@ -1,6 +1,6 @@
 import os
 import time
-#from mpu6050py import MPU6050
+
 # a point will have an ID, a position (x, y) and a speed limit
 # e.g. (0, 2, 2, 40)
 points = [
@@ -14,61 +14,6 @@ command_queue = []
 
 def DEGREES(x):
 	return x * 180 / 3.1415
-
-"""
-rotation_x = 0
-rotation_y = 0
-rotation_z = 0
-sensor_addr = 0x68
-sensor = MPU6050()
-sensor.set_x_gyro_offset(92)
-sensor.set_y_gyro_offset(-427)
-sensor.set_z_gyro_offset(130)
-delta_time_start = 0
-delta_time_end = 0
-while True:
-	delta_time = delta_time_end - delta_time_start
-	delta_time_start = time.perf_counter() # time in seconds
-
-	delta_x = sensor.get_rotation()[0]
-	delta_y = sensor.get_rotation()[1]
-	delta_z = sensor.get_rotation()[2]
-	if delta_time > 0:
-		if 0 < delta_x < 5 or 0 > delta_z > -5:
-			delta_x = 0
-		if 0 < delta_y < 14 or 0 > delta_z > -5:
-			delta_y = 0
-		if 0 < delta_z < 5 or 0 > delta_z > -5:
-			delta_z = 0
-		rotation_x += delta_x / delta_time / 1000
-		rotation_y += delta_y / delta_time / 1000
-		rotation_z += delta_z / delta_time / 1000
-
-	os.system('clear')
-	print (rotation_x)
-	print (rotation_y)
-	print (rotation_z)
-
-	delta_time_end = time.perf_counter()
-
-"""
-
-"""
-rfid_port = ''
-rfid = RFID(port=rfid_port, baud_rate=9600)
-def RFIDGetID():
-	return rfid.get_id()
-
-sensor_addr = ''
-sensor = mpu6050(sensor_addr)
-
-# using RFID and the IDs of the points
-def GetLocation():
-	# move forward to find the RFID sticker (?)
-	# id = RFIDGetID()
-	# return points[id][0], points[id][1]
-	return (1, 1)
-"""
 
 def GetLocation():
 	return (1, 1)
