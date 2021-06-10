@@ -13,7 +13,7 @@ Alset is a small-scale proof-of-concept autonomous car which can react to traffi
 - [x] GPIO communications
 - [x] Redundant obstacle detection
 - [x] Wireless joystick control
-- [x] -Camera pan & tilt-
+- [ ] Camera pan & tilt
 - [x] Server for picking destination
 - [x] Pathfinding
 
