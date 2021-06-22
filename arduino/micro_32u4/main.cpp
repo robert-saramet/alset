@@ -5,8 +5,10 @@
 #define ESC_PIN 11
 
 const int neutral = 1500;
-const int minSpeed = 60;
-const int topSpeed = 120;
+const int minSpeed = neutral + 70;
+const int topSpeed = neutral + 150;
+const int minSpeedRev = neutral - 150;
+const int topSpeedRev = neutral - 250;
 
 Servo servo;
 Servo ESC;
@@ -58,16 +60,25 @@ void loop() {
     int pos = testStruct.pos;
 
     int absSpeed;
+    bool lastDir;
   if (relSpeed > 0 && relSpeed <= 100) {
-    absSpeed = map(relSpeed, 1, 100, neutral + minSpeed, neutral + topSpeed);
+    absSpeed = map(relSpeed, 1, 100, minSpeed, topSpeed);
+    lastDir = 1;
   }
   else if (relSpeed < 0 && relSpeed >= -100) {
-    absSpeed = map(relSpeed, -1, -100, neutral - minSpeed, neutral - topSpeed);
-    ESC.writeMicroseconds(neutral);
-    delay(50);
+    absSpeed = map(relSpeed, -1, -100, minSpeedRev, topSpeedRev);
+    long revDelay = millis();
+    if (lastDir) {
+      while (millis() - revDelay < 100) {
+        ESC.writeMicroseconds(neutral);
+      }
+    }
+    ESC.writeMicroseconds(absSpeed);
+    lastDir = 0;
   }
   else {
     absSpeed = neutral;
+    lastDir = 0;
   }
 
   Serial.println(absSpeed);
