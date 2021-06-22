@@ -13,7 +13,7 @@ struct STRUCT {
   uint8_t pos;
 } testStruct;
 
-char arr[] = "hello";
+char cmd[] = "brake";
 
 bool brake = 1;
 
@@ -22,7 +22,7 @@ void sendSpeed(int relSpeed = 0, int pos = 0) {
     testStruct.relSpeed = relSpeed;
     testStruct.pos = pos;
     sendSize = myTransfer.txObj(testStruct, sendSize);
-    sendSize = myTransfer.txObj(arr, sendSize);
+    sendSize = myTransfer.txObj(cmd, sendSize);
     myTransfer.sendData(sendSize);
 }
 
@@ -53,14 +53,16 @@ BLYNK_WRITE(V0)
 }
 
 BLYNK_WRITE(V1) {
-  int posX = param[0].asInt();
-  int posY = param[1].asInt();
-  int mapX = map(posX, -255, 255, 0, 180);
-  int mapY = map(posY, -255, 255, -100, 100);
   if (!brake) {
+    int posX = param[0].asInt();
+    int posY = param[1].asInt();
+    int mapX = map(posX, -255, 255, 0, 180);
+    int mapY = map(posY, -255, 255, -100, 100);
+    cmd = "move";
     sendSpeed(mapY, mapX);
   }
   else {
+    cmd = "brake";
     sendSpeed(0, 90);
   }
 }
