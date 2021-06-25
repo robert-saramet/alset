@@ -13,7 +13,7 @@ struct STRUCT {
   uint8_t pos;
 } testStruct;
 
-char cmd[] = "brake";
+char cmd[] = "move";
 
 bool brake = 1;
 
@@ -58,11 +58,9 @@ BLYNK_WRITE(V1) {
     int posY = param[1].asInt();
     int mapX = map(posX, -255, 255, 0, 180);
     int mapY = map(posY, -255, 255, -100, 100);
-    cmd = "move";
     sendSpeed(mapY, mapX);
   }
   else {
-    cmd = "brake";
     sendSpeed(0, 90);
   }
 }
