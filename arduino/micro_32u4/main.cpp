@@ -2,16 +2,16 @@
 #include "Ultrasonic.h"
 #include "Servo.h"
 
-#define DEBUG
+#undef DEBUG
 
 #define SERVO_PIN 10
 #define ESC_PIN 11
 
-const int neutral = 1500;
-const int minSpeed = neutral + 70;
-const int topSpeed = neutral + 200;
-const int minSpeedRev = neutral - 150;
-const int topSpeedRev = neutral - 250;
+int neutral = 1500;
+int minSpeed = neutral + 70;
+int topSpeed = neutral + 150;
+int minSpeedRev = neutral - 150;
+int topSpeedRev = neutral - 250;
 
 const int failsafeDelay = 300;
 long lastInput = 0;
@@ -27,14 +27,17 @@ SerialTransfer myTransfer;
 #define FL_TRIG 9
 #define FR_ECHO 6
 #define FR_TRIG 7
+#define TIMEOUT 6000
 
-Ultrasonic sonarF(F_TRIG, F_ECHO);
-Ultrasonic sonarFL(FL_TRIG, FL_ECHO);
-Ultrasonic sonarFR(FR_TRIG, FR_ECHO);
+Ultrasonic sonarF(F_TRIG, F_ECHO, TIMEOUT);
+Ultrasonic sonarFL(FL_TRIG, FL_ECHO, TIMEOUT);
+Ultrasonic sonarFR(FR_TRIG, FR_ECHO, TIMEOUT);
 
 struct Motors {
     int8_t relSpeed;
     uint8_t pos;
+    bool turbo;
+    
 } motorStruct;
 
 struct Sonars {
@@ -44,6 +47,7 @@ struct Sonars {
 } sonarStruct;
 
 char cmd[6];
+
 
 
 void setup()
@@ -87,6 +91,22 @@ void drive() {
     
         int relSpeed = motorStruct.relSpeed;
         int pos = motorStruct.pos;
+        bool turbo = motorStruct.turbo;
+
+        if (turbo) {
+            minSpeed = neutral + 100;
+            topSpeed = neutral + 200;
+            minSpeedRev = neutral - 200;
+            topSpeedRev = neutral - 300;
+        }
+        else {
+            neutral = 1500;
+            minSpeed = neutral + 70;
+            topSpeed = neutral + 150;
+            minSpeedRev = neutral - 150;
+            topSpeedRev = neutral - 250;
+        }
+        
         int absSpeed;
         bool lastDir;
         
