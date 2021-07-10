@@ -8,15 +8,18 @@ SerialTransfer myTransfer;
 struct STRUCT {
   int8_t relSpeed;
   uint8_t pos;
-} testStruct;
+  bool turbo;
+} motorStruct;
 
 char cmd[] = "move";
+bool turbo = 0;
 
-void sendSpeed(int relSpeed = 0, int pos = 0) {
+void sendSpeed(int relSpeed = 0, int pos = 0, bool turbo = 0) {
     uint16_t sendSize = 0;
-    testStruct.relSpeed = relSpeed;
-    testStruct.pos = pos;
-    sendSize = myTransfer.txObj(testStruct, sendSize);
+    motorStruct.relSpeed = relSpeed;
+    motorStruct.pos = pos;
+    motorStruct.turbo = turbo;
+    sendSize = myTransfer.txObj(motorStruct, sendSize);
     sendSize = myTransfer.txObj(cmd, sendSize);
     myTransfer.sendData(sendSize);
 }
@@ -33,7 +36,14 @@ void setup()
 void loop()
 {
   int mapX, mapY;
-  
+
+  //turbo
+  if (PS4.Triangle()) {
+      turbo = 1;
+  }
+  else {
+      turbo = 0;
+  }
   // forward
   if (PS4.R2Value() > 10 && PS4.L2Value() < 10) {
     mapY = map(PS4.R2Value(), 0, 255, 0, 100);
@@ -49,5 +59,6 @@ void loop()
 
   mapX = map(PS4.LStickX(), -128, 127, 0, 180);
 
-  sendSpeed(mapY, mapX);
+
+  sendSpeed(mapY, mapX, turbo);
 }
