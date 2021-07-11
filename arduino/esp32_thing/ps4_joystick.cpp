@@ -5,14 +5,26 @@ char auth[] = "r70VT9kv6x1BQJ_iCe7zRaqItWJf_OBS";
 
 SerialTransfer myTransfer;
 
-struct STRUCT {
-  int8_t relSpeed;
-  uint8_t pos;
-  bool turbo;
+struct Motors {
+    int8_t relSpeed;
+    uint8_t pos;
+    bool turbo;
 } motorStruct;
+
+struct Sonars {
+    uint8_t distF;
+    uint8_t distFL;
+    uint8_t distFR;
+} sonarStruct;
 
 char cmd[] = "move";
 bool turbo = 0;
+
+short distF;
+short distFL;
+short distFR;
+
+long lastSend = millis();
 
 void sendSpeed(int relSpeed = 0, int pos = 0, bool turbo = 0) {
     uint16_t sendSize = 0;
@@ -22,6 +34,47 @@ void sendSpeed(int relSpeed = 0, int pos = 0, bool turbo = 0) {
     sendSize = myTransfer.txObj(motorStruct, sendSize);
     sendSize = myTransfer.txObj(cmd, sendSize);
     myTransfer.sendData(sendSize);
+}
+
+void getSonar() {
+    if(myTransfer.available()){
+        uint16_t recSize = 0;
+        recSize = myTransfer.rxObj(sonarStruct, recSize);
+        recSize = myTransfer.rxObj(cmd, recSize);
+        distF = sonarStruct.distF;
+        distFL = sonarStruct.distFL;
+        distFR = sonarStruct.distFR;
+    }
+}
+
+void sendToJoystick() {
+    short min;
+    if (distF  <= distFL) {
+        min = distF;
+    }
+    else {
+        if (distFL <= distFR) {
+            min = distFL;
+        }
+        else min = distFR;
+    }
+
+    short red = map(min, 0, 45, 255, 0);
+    short green = 255 - red;
+
+    PS4.setLed(red, green, 0);
+
+    short rumbleL, rumbleR;
+    if (distF <= distFL && distF <= distFR) {
+        rumbleL = rumbleR = map(distF, 0, 45, 255, 0);
+    }
+    else {
+        rumbleL = map(distFL, 0, 45, 255, 0);
+        rumbleR = map(distFR, 0, 45, 255, 0);
+    }
+    
+    PS4.setRumble(rumbleL, rumbleR);
+    PS4.sendToController();
 }
 
 void setup()
@@ -61,4 +114,11 @@ void loop()
 
 
   sendSpeed(mapY, mapX, turbo);
+
+  getSonar();
+
+  if ((millis() - lastSend) > 30) {
+      sendToJoystick();
+      lastSend = millis();
+  }
 }
