@@ -27,7 +27,7 @@ SerialTransfer myTransfer;
 #define FL_TRIG 9
 #define FR_ECHO 6
 #define FR_TRIG 7
-#define TIMEOUT 6000
+#define TIMEOUT 2550
 
 Ultrasonic sonarF(F_TRIG, F_ECHO, TIMEOUT);
 Ultrasonic sonarFL(FL_TRIG, FL_ECHO, TIMEOUT);
@@ -37,13 +37,12 @@ struct Motors {
     int8_t relSpeed;
     uint8_t pos;
     bool turbo;
-    
 } motorStruct;
 
 struct Sonars {
-  uint8_t distF;
-  uint8_t distFL;
-  uint8_t distFR;
+    uint8_t distF;
+    uint8_t distFL;
+    uint8_t distFR;
 } sonarStruct;
 
 char cmd[6];
@@ -55,7 +54,10 @@ void setup()
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
   
-    Serial.begin(115200);
+    #ifdef DEBUG
+        Serial.begin(115200);
+    #endif
+    
     Serial1.begin(115200);
     myTransfer.begin(Serial1);
   
