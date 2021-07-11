@@ -1,8 +1,6 @@
 #include "SerialTransfer.h"
 #include <PS4Controller.h>
 
-char auth[] = "r70VT9kv6x1BQJ_iCe7zRaqItWJf_OBS";
-
 SerialTransfer myTransfer;
 
 struct Motors {
