@@ -17,6 +17,9 @@ struct Sonars {
 
 char cmd[] = "move";
 bool turbo = 0;
+bool manual = 0;
+bool lastCross = 0;
+short lastSpeed = 0;
 
 short distF;
 short distFL;
@@ -24,7 +27,7 @@ short distFR;
 
 long lastSend = millis();
 
-void sendSpeed(int relSpeed = 0, int pos = 0, bool turbo = 0) {
+void sendSpeed(int relSpeed = 0, int pos = 90, bool turbo = 0) {
     uint16_t sendSize = 0;
     motorStruct.relSpeed = relSpeed;
     motorStruct.pos = pos;
@@ -98,104 +101,112 @@ void setup()
 
 void loop()
 {
-    int mapX, mapY;
+    int mapX, mapY = 0;
 
-    //turbo
-    if (PS4.Triangle()) {
-        turbo = 1;
-    }
-    else {
-        turbo = 0;
-    }
-    // forward
-    if (PS4.R2Value() > 10 && PS4.L2Value() < 10) {
-      mapY = map(PS4.R2Value(), 0, 255, 0, 100);
-    }
-    // backward
-    else if (PS4.L2Value() > 10 && PS4.R2Value() < 10) {
-      mapY = map(PS4.L2Value(), 0, 255, 0, -100);
-    }
-    // brake
-    else {
-      mapY = 0;
-    }
-
-    getSonar();
-
-    if ((millis() - lastSend) > 30) {
-        sendToJoystick();
-        lastSend = millis();
-    }
-
-    if (mapY > 0) {
-        if (distF >= 45 && distFL >= 45 & distFR > 35) {
-            mapX = 90;
+    if (PS4.isConnected()) {
+        //turbo
+        if (PS4.Triangle()) {
+            turbo = 1;
         }
-        else if (distF < 45 && distFL < 35 | distFR < 35) {
-            if (distFL < distFR) {
-                mapX = 90 + 20;
-            }
-            else {
-                mapX = 90 - 20;
-            }
+        else {
+            turbo = 0;
         }
-        else if (distF < 45 && distFL < 25 | distFR < 25) {
-            if (distFL < distFR) {
-                mapX = 90 + 30;
-            }
-            else {
-                mapX = 90 - 30;
-            }
+        // forward
+        if (PS4.R2Value() > 10 && PS4.L2Value() < 10) {
+          mapY = map(PS4.R2Value(), 0, 255, 0, 100);
         }
-        else if (distF < 45 && distFL < 20 | distFR < 20) {
-            mapY *= 0.6;
-            if (distFL < distFR) {
-                mapX = 90 + 40;
-            }
-            else {
-                mapX = 90 - 40;
-            }
+        // backward
+        else if (PS4.L2Value() > 10 && PS4.R2Value() < 10) {
+          mapY = map(PS4.L2Value(), 0, 255, 0, -100);
         }
-        else if (distF < 45 && distFL < 15 | distFR < 15) {
-            mapY *= 0.35;
-            if (distFL < distFR) {
-                mapX = 90 + 90;
-            }
-            else {
-                mapX = 90 - 90;
-            }
+        // brake
+        else {
+          mapY = 0;
         }
-        else if (distF < 45 && distFL < 15 | distFR < 15) {
-            mapY *= 0.35;
-            if (distFL < distFR) {
-                mapX = 90 + 90;
-            }
-            else {
-                mapX = 90 - 90;
-            }
+      
+        getSonar();
+      
+        if ((millis() - lastSend) > 30) {
+            sendToJoystick();
+            lastSend = millis();
         }
-        else if (distF < 45 && distFL < 10 | distFR < 10) {
-            sendSpeed(0, 90, 0);
-            delay(200);
-            Sonars values1 = sonarStruct;
-            getSonar();
-            if (values1 != sonarStruct) {
-                Sonars values2 = sonarStruct;
-                delay(100);
-                getSonar();
-                if (sonarStruct != values2) {
-                    sonarStruct.distF = (sonarStruct.distF + values1.distF + values2.distF) / 3;
-                    sonarStruct.distFL = (sonarStruct.distFL + values1.distFL + values2.distFL) / 3;
-                    sonarStruct.distFR = (sonarStruct.distFR + values1.distFR + values2.distFR) / 3;
-                }
-            }
-
-            if (distF < 45 && distFL < 10 | distFR < 10) {
-                mapY = -60;
+      
+        Serial.print("Sonar front: ");
+        Serial.println(distF);
+        Serial.print("Sonar front left: ");
+        Serial.println(distFL);
+        Serial.print("Sonar front right: ");
+        Serial.println(distFR);
+      
+        bool cross = PS4.Cross();
+        if (cross != lastCross) {
+            manual = !manual;
+        }
+        lastCross = cross;
+      
+        if (manual) {
+            mapX = map(PS4.LStickX(), -128, 127, 0, 180);
+        }
+        else {
+            if (distF >= 45 && distFL >= 45 & distFR >= 45) {
                 mapX = 90;
             }
+            else if (distF <= 45 && (distFL < 45 | distFR < 45) && (distFL > 10 && distFR > 10))  {
+                if (distFL < distFR) {
+                    if (mapY >= 0) {
+                        mapX = 90 + 90;
+                    }
+                    else {
+                        mapX = 90 - 90;
+                        if (lastSpeed > 0) {
+                            sendSpeed();
+                            delay(100);
+                        }
+                    }
+                }
+                else {
+                    if (mapY >= 0) {
+                        mapX = 90 - 90;
+                    }
+                    else {
+                        mapX = 90 + 90;
+                        if (lastSpeed > 0) {
+                            sendSpeed();
+                            delay(100);
+                        }
+                    }
+                }
+            }
+            else if (distF <= 45 && (distFL <= 10 | distFR <= 10)) {
+                sendSpeed();
+                delay(200);
+                Sonars values1 = sonarStruct;
+                getSonar();
+                if (values1 != sonarStruct) {
+                    Sonars values2 = sonarStruct;
+                    delay(100);
+                    getSonar();
+                    if (sonarStruct != values2) {
+                        sonarStruct.distF = (sonarStruct.distF + values1.distF + values2.distF) / 3;
+                        sonarStruct.distFL = (sonarStruct.distFL + values1.distFL + values2.distFL) / 3;
+                        sonarStruct.distFR = (sonarStruct.distFR + values1.distFR + values2.distFR) / 3;
+                    }
+                }
+          
+                if (distF <= 45 && distFL < 10 | distFR < 10) {
+                    mapY = -60;
+                    mapX = 90;
+                }
+            }
         }
+      
+        Serial.print("Angle: ");
+        Serial.println(mapX);
+      
+        sendSpeed(mapY, mapX, turbo);
+        lastSpeed = mapY;
     }
-
-  sendSpeed(mapY, mapX, turbo);
+    else {
+        sendSpeed();
+    }
 }
