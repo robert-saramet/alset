@@ -140,7 +140,9 @@ void loop()
       
         bool cross = PS4.Cross();
         if (cross != lastCross) {
-            manual = !manual;
+            if (cross) {
+                manual = !manual;
+            }
         }
         lastCross = cross;
       
