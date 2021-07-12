@@ -3,36 +3,41 @@
 
 SerialTransfer myTransfer;
 
-struct Motors {
-    int8_t relSpeed;
+struct MotorStruct {
+    int8_t speed;
     uint8_t pos;
     bool turbo;
-} motorStruct;
+} motors;
 
-struct Sonars {
+struct SonarStruct {
     uint8_t distF;
     uint8_t distFL;
     uint8_t distFR;
-} sonarStruct;
+} sonars;
 
 char cmd[] = "move";
 bool turbo = 0;
 bool manual = 0;
 bool lastCross = 0;
-short lastSpeed = 0;
 
 short distF;
 short distFL;
 short distFR;
 
+struct OldData {
+    struct SonarStruct sonars;
+    struct MotorStruct motors;
+    bool manual;
+} old {{45, 45, 45}, {0, 90, 0}, 1};
+
 long lastSend = millis();
 
-void sendSpeed(int relSpeed = 0, int pos = 90, bool turbo = 0) {
+void sendSpeed(int speed = 0, int pos = 90, bool turbo = 0) {
     uint16_t sendSize = 0;
-    motorStruct.relSpeed = relSpeed;
-    motorStruct.pos = pos;
-    motorStruct.turbo = turbo;
-    sendSize = myTransfer.txObj(motorStruct, sendSize);
+    motors.speed = speed;
+    motors.pos = pos;
+    motors.turbo = turbo;
+    sendSize = myTransfer.txObj(motors, sendSize);
     sendSize = myTransfer.txObj(cmd, sendSize);
     myTransfer.sendData(sendSize);
 }
@@ -40,11 +45,11 @@ void sendSpeed(int relSpeed = 0, int pos = 90, bool turbo = 0) {
 void getSonar() {
     if(myTransfer.available()){
         uint16_t recSize = 0;
-        recSize = myTransfer.rxObj(sonarStruct, recSize);
+        recSize = myTransfer.rxObj(sonars, recSize);
         recSize = myTransfer.rxObj(cmd, recSize);
-        distF = sonarStruct.distF;
-        distFL = sonarStruct.distFL;
-        distFR = sonarStruct.distFR;
+        distF = sonars.distF;
+        distFL = sonars.distFL;
+        distFR = sonars.distFR;
     }
 }
 
@@ -78,16 +83,23 @@ void sendToJoystick() {
     PS4.sendToController();
 }
 
-bool operator==(const Sonars lhs, const Sonars rhs) {
-    if ((lhs.distF - rhs.distF < 3) && (lhs.distF - rhs.distF > -3)
-        && (lhs.distFL - rhs.distFL < 3) && (lhs.distFL - rhs.distFL > -3)
-        && (lhs.distFR - rhs.distFR < 3) && (lhs.distFR - rhs.distFR > -3))
+bool operator==(const SonarStruct lhs, const SonarStruct rhs) {
+    if ((lhs.distF - rhs.distF < 2) && (lhs.distF - rhs.distF > -2)
+        && (lhs.distFL - rhs.distFL < 2) && (lhs.distFL - rhs.distFL > -2)
+        && (lhs.distFR - rhs.distFR < 2) && (lhs.distFR - rhs.distFR > -2))
             return 1;
     else return 0;
 }
 
-bool operator!=(const Sonars lhs, const Sonars rhs) {
+bool operator!=(const SonarStruct lhs, const SonarStruct rhs) {
     return !(lhs == rhs);
+}
+
+SonarStruct operator/(SonarStruct lhs, const int rhs) {
+    lhs.distF = lhs.distF / rhs;
+    lhs.distFL = lhs.distFL / rhs;
+    lhs.distFR = lhs.distFR / rhs;
+    return lhs;
 }
 
 void setup()
@@ -150,55 +162,60 @@ void loop()
             mapX = map(PS4.LStickX(), -128, 127, 0, 180);
         }
         else {
-            if (distF >= 45 && distFL >= 45 & distFR >= 45) {
-                mapX = 90;
-            }
-            else if (distF <= 45 && (distFL < 45 | distFR < 45) && (distFL > 10 && distFR > 10))  {
-                if (distFL < distFR) {
-                    if (mapY >= 0) {
-                        mapX = 90 + 90;
-                    }
-                    else {
-                        mapX = 90 - 90;
-                        if (lastSpeed > 0) {
-                            sendSpeed();
-                            delay(100);
-                        }
-                    }
-                }
-                else {
-                    if (mapY >= 0) {
-                        mapX = 90 - 90;
-                    }
-                    else {
-                        mapX = 90 + 90;
-                        if (lastSpeed > 0) {
-                            sendSpeed();
-                            delay(100);
-                        }
-                    }
-                }
-            }
-            else if (distF <= 45 && (distFL <= 10 | distFR <= 10)) {
-                sendSpeed();
-                delay(200);
-                Sonars values1 = sonarStruct;
-                getSonar();
-                if (values1 != sonarStruct) {
-                    Sonars values2 = sonarStruct;
-                    delay(100);
-                    getSonar();
-                    if (sonarStruct != values2) {
-                        sonarStruct.distF = (sonarStruct.distF + values1.distF + values2.distF) / 3;
-                        sonarStruct.distFL = (sonarStruct.distFL + values1.distFL + values2.distFL) / 3;
-                        sonarStruct.distFR = (sonarStruct.distFR + values1.distFR + values2.distFR) / 3;
-                    }
-                }
-          
-                if (distF <= 45 && distFL < 10 | distFR < 10) {
-                    mapY = -60;
+            if (sonars != old.sonars) {
+                if (distF >= 45 && distFL >= 45 & distFR >= 45) {
                     mapX = 90;
                 }
+                else if (distF <= 45 && (distFL < 45 | distFR < 45) && (distFL > 10 && distFR > 10))  {
+                    if (distFL < distFR) {
+                        if (mapY >= 0) {
+                            mapX = 90 + 90;
+                        }
+                        else {
+                            mapX = 90 - 90;
+                            if (old.motors.speed > 0) {
+                                sendSpeed();
+                                delay(100);
+                            }
+                        }
+                    }
+                    else {
+                        if (mapY >= 0) {
+                            mapX = 90 - 90;
+                        }
+                        else {
+                            mapX = 90 + 90;
+                            if (old.motors.speed > 0) {
+                                sendSpeed();
+                                delay(100);
+                            }
+                        }
+                    }
+                }
+                else if (distF <= 45 && (distFL <= 10 | distFR <= 10)) {
+                    sendSpeed();
+                    delay(200);
+                    SonarStruct values1 = sonars;
+                    getSonar();
+                    if (values1 != sonars) {
+                        SonarStruct values2 = sonars;
+                        delay(100);
+                        getSonar();
+                        if (sonars != values2) {
+                            sonars.distF = (sonars.distF + values1.distF + values2.distF) / 3;
+                            sonars.distFL = (sonars.distFL + values1.distFL + values2.distFL) / 3;
+                            sonars.distFR = (sonars.distFR + values1.distFR + values2.distFR) / 3;
+                        }
+                    }
+              
+                    if (distF <= 45 && distFL < 10 | distFR < 10) {
+                        mapY = -60;
+                        mapX = 90;
+                    }
+                }
+            }
+            else {
+                mapX = old.motors.pos;
             }
         }
       
@@ -206,7 +223,7 @@ void loop()
         Serial.println(mapX);
       
         sendSpeed(mapY, mapX, turbo);
-        lastSpeed = mapY;
+        old = {sonars, motors, manual};
     }
     else {
         sendSpeed();
