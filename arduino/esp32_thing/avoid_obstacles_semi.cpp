@@ -65,18 +65,26 @@ void sendToJoystick() {
         else min = distFR;
     }
 
+    if (min > 45) {
+        min = 45;
+    }
     short red = map(min, 0, 45, 255, 0);
     short green = 255 - red;
 
     PS4.setLed(red, green, 0);
 
     short rumbleL, rumbleR;
-    if (distF <= distFL && distF <= distFR) {
-        rumbleL = rumbleR = map(distF, 0, 45, 255, 0);
+    if ((distFL <= 45) | (distFR <= 45)) {
+        if (distF <= distFL && distF <= distFR) {
+            rumbleL = rumbleR = map(distF, 0, 45, 255, 0);
+        }
+        else {
+            rumbleL = map(distFL, 0, 45, 255, 0);
+            rumbleR = map(distFR, 0, 45, 255, 0);
+        }
     }
     else {
-        rumbleL = map(distFL, 0, 45, 255, 0);
-        rumbleR = map(distFR, 0, 45, 255, 0);
+        rumbleL = rumbleR = 0;
     }
     
     PS4.setRumble(rumbleL, rumbleR);
@@ -163,10 +171,10 @@ void loop()
         }
         else {
             if (sonars != old.sonars) {
-                if (distF >= 45 && distFL >= 45 & distFR >= 45) {
+                if (distF >= 60 && distFL >= 60 & distFR >= 60) {
                     mapX = 90;
                 }
-                else if (distF <= 45 && (distFL < 45 | distFR < 45) && (distFL > 10 && distFR > 10))  {
+                else if (distF <= 60 && (distFL < 60 | distFR < 60) && (distFL > 40 && distFR > 40))  {
                     if (distFL < distFR) {
                         if (mapY >= 0) {
                             mapX = 90 + 90;
@@ -192,7 +200,33 @@ void loop()
                         }
                     }
                 }
-                else if (distF <= 45 && (distFL <= 10 | distFR <= 10)) {
+                else if ((distFL <= 40 | distFR <= 40) && (distFL > 10 && distFR > 10))  {
+                    if (distFL < distFR) {
+                        if (mapY >= 0) {
+                            mapX = 90 + 90;
+                        }
+                        else {
+                            mapX = 90 - 90;
+                            if (old.motors.speed > 0) {
+                                sendSpeed();
+                                delay(100);
+                            }
+                        }
+                    }
+                    else {
+                        if (mapY >= 0) {
+                            mapX = 90 - 90;
+                        }
+                        else {
+                            mapX = 90 + 90;
+                            if (old.motors.speed > 0) {
+                                sendSpeed();
+                                delay(100);
+                            }
+                        }
+                    }
+                }
+                else if ((distFL <= 10) | (distFR <= 10)) {
                     sendSpeed();
                     delay(200);
                     SonarStruct values1 = sonars;
@@ -208,7 +242,7 @@ void loop()
                         }
                     }
               
-                    if (distF <= 45 && distFL < 10 | distFR < 10) {
+                    if ((distFL < 10) | (distFR < 10)) {
                         mapY = -60;
                         mapX = 90;
                     }
