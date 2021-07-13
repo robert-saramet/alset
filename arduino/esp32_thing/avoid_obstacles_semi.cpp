@@ -56,7 +56,12 @@ void getSonar() {
 void sendToJoystick() {
     short min;
     if (distF  <= distFL) {
-        min = distF;
+        if (distF <= distFR) {
+            min = distF;
+        }
+        else {
+            min = distFR;
+        }
     }
     else {
         if (distFL <= distFR) {
@@ -74,17 +79,12 @@ void sendToJoystick() {
     PS4.setLed(red, green, 0);
 
     short rumbleL, rumbleR;
-    if ((distFL <= 45) | (distFR <= 45)) {
-        if (distF <= distFL && distF <= distFR) {
-            rumbleL = rumbleR = map(distF, 0, 45, 255, 0);
-        }
-        else {
-            rumbleL = map(distFL, 0, 45, 255, 0);
-            rumbleR = map(distFR, 0, 45, 255, 0);
-        }
+    if (distF <= distFL && distF <= distFR) {
+        rumbleL = rumbleR = map(distF, 0, 60, 255, 0);
     }
     else {
-        rumbleL = rumbleR = 0;
+        rumbleL = map(distFL, 0, 60, 255, 0);
+        rumbleR = map(distFR, 0, 60, 255, 0);
     }
     
     PS4.setRumble(rumbleL, rumbleR);
