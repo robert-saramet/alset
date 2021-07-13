@@ -27,7 +27,7 @@ SerialTransfer myTransfer;
 #define FL_TRIG 9
 #define FR_ECHO 6
 #define FR_TRIG 7
-#define TIMEOUT 2550
+#define TIMEOUT 3380 // 60 cm
 
 Ultrasonic sonarF(F_TRIG, F_ECHO, TIMEOUT);
 Ultrasonic sonarFL(FL_TRIG, FL_ECHO, TIMEOUT);
