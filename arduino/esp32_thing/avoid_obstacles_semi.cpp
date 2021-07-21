@@ -46,7 +46,6 @@ void getSonar() {
     if(myTransfer.available()){
         uint16_t recSize = 0;
         recSize = myTransfer.rxObj(sonars, recSize);
-        recSize = myTransfer.rxObj(cmd, recSize);
         distF = sonars.distF;
         distFL = sonars.distFL;
         distFR = sonars.distFR;
