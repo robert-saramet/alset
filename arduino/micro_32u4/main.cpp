@@ -6,6 +6,7 @@
 
 #define SERVO_PIN 10
 #define ESC_PIN 11
+#define ENC_PIN 2
 
 int neutral = 1500;
 int minSpeed = neutral + 70;
@@ -14,7 +15,10 @@ int minSpeedRev = neutral - 150;
 int topSpeedRev = neutral - 250;
 
 const int failsafeDelay = 300;
-long lastInput = 0;
+unsigned long lastInput = 0;
+unsigned long lastUpdate = millis();
+volatile unsigned int counter = 0;
+unsigned int rps = 0;
 
 Servo servo;
 Servo ESC;
@@ -33,21 +37,37 @@ Ultrasonic sonarF(F_TRIG, F_ECHO, TIMEOUT);
 Ultrasonic sonarFL(FL_TRIG, FL_ECHO, TIMEOUT);
 Ultrasonic sonarFR(FR_TRIG, FR_ECHO, TIMEOUT);
 
-struct Motors {
+struct MotorStruct {
     int8_t relSpeed;
     uint8_t pos;
     bool turbo;
-} motorStruct;
+} motors;
 
-struct Sonars {
+struct SonarStruct {
     uint8_t distF;
     uint8_t distFL;
     uint8_t distFR;
-} sonarStruct;
-
-char cmd[6];
+} sonars;
 
 
+
+
+void count() {
+    counter++;
+}
+
+void getRPM() {
+  if (millis() - lastUpdate >= 1000) {
+      rps = (counter / 1);  // divide by number of signals on wheel
+      counter = 0;
+      lastUpdate = millis();
+      #ifdef DEBUG
+          Serial.print("Speed: "); 
+          Serial.print(rps, DEC);
+          Serial.println(" rotations per seconds");
+      #endif
+  }
+}
 
 void setup()
 {
@@ -63,20 +83,21 @@ void setup()
   
     servo.attach(SERVO_PIN);
     ESC.attach(ESC_PIN);
+
+    attachInterrupt(digitalPinToInterrupt(2), count, FALLING);
   
     delay(200);
     digitalWrite(LED_BUILTIN, LOW);
     ESC.writeMicroseconds(neutral);
     servo.write(90);
-    delay(4000);
+    delay(2000);
     digitalWrite(LED_BUILTIN, HIGH);
 }
 
 void recvData() {
     if(myTransfer.available()){
         uint16_t recSize = 0;
-        recSize = myTransfer.rxObj(motorStruct, recSize);
-        recSize = myTransfer.rxObj(cmd, recSize);
+        recSize = myTransfer.rxObj(motors, recSize);
         lastInput = millis();
     }
 }
@@ -84,16 +105,14 @@ void recvData() {
 void drive() {
     if (millis() - lastInput < failsafeDelay) {
         #ifdef DEBUG
-            Serial.print(motorStruct.relSpeed);
+            Serial.print(motors.relSpeed);
             Serial.print(" | ");
-            Serial.print(motorStruct.pos);
-            Serial.print(" | ");
-            Serial.println(cmd);
+            Serial.print(motors.pos);
          #endif
     
-        int relSpeed = motorStruct.relSpeed;
-        int pos = motorStruct.pos;
-        bool turbo = motorStruct.turbo;
+        int relSpeed = motors.relSpeed;
+        int pos = motors.pos;
+        bool turbo = motors.turbo;
 
         if (turbo) {
             minSpeed = neutral + 100;
@@ -134,7 +153,9 @@ void drive() {
       
         int mapPos = map(pos, 0, 180, 180, 0);
       
-        Serial.println(absSpeed);
+        #ifdef DEBUG
+            Serial.println(absSpeed);
+        #endif
         ESC.writeMicroseconds(absSpeed);
         servo.write(mapPos);
     }
@@ -162,19 +183,20 @@ void readDist() {
         Serial.println(" cm");
     #endif
 
-    sonarStruct.distF = distF;
-    sonarStruct.distFL = distFL;
-    sonarStruct.distFR = distFR;
+    sonars.distF = distF;
+    sonars.distFL = distFL;
+    sonars.distFR = distFR;
 }
 
 void sendData() {
     uint16_t sendSize = 0;
-    sendSize = myTransfer.txObj(sonarStruct, sendSize);
+    sendSize = myTransfer.txObj(sonars, sendSize);
     myTransfer.sendData(sendSize);
 }
 
 void loop() {
     recvData();
+    getRPM();
     drive();
     readDist();
     sendData();
