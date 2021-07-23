@@ -15,7 +15,6 @@ struct SonarStruct {
     uint8_t distFR;
 } sonars;
 
-char cmd[] = "move";
 bool turbo = 0;
 bool manual = 0;
 bool lastCross = 0;
@@ -38,7 +37,6 @@ void sendSpeed(int speed = 0, int pos = 90, bool turbo = 0) {
     motors.pos = pos;
     motors.turbo = turbo;
     sendSize = myTransfer.txObj(motors, sendSize);
-    sendSize = myTransfer.txObj(cmd, sendSize);
     myTransfer.sendData(sendSize);
 }
 
