@@ -3,8 +3,9 @@
 <h4>
      <ul>
          <li> <span class="esp32"> Sparkfun Thing ESP32 </span> (main MCU) </li>
-         <li> Pololu A-Star Micro (ultrasonic & line sensors) </li>
-         <li> Raspberry Pi 3 or 4 (openCV, Blynk server, flashing) </li>
+         <li> Pololu A-Star Micro 32u4 (ultrasonic, motors, encoder, slider </li>
+         <li> Pololu A-Star Micro 328PB (ultrasonic, GPS, LCD, leds) </li>
+         <li> Raspberry Pi 3 or 4 (openCV, Blynk server, dashboard, flashing) </li>
     </ul>
 </h4>
 
