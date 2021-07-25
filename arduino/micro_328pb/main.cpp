@@ -12,7 +12,7 @@
 Ultrasonic sonarL(L_TRIG, L_ECHO, TIMEOUT);
 Ultrasonic sonarR(R_TRIG, R_ECHO, TIMEOUT);
 
-struct MixedStruct {
+struct __attribute__((__packed__)) MixedStruct {
     uint8_t distanceL;
     uint8_t distanceR;
     double lat;
@@ -36,7 +36,7 @@ const functionPtr callbackArr[] = { recvData };
 
 void setup() {
     Serial1.begin(GPS_BAUD);
-    Wire.begin(0);
+    Wire.begin();
 
     configST myConfig;
     myConfig.debug        = true;
@@ -75,6 +75,7 @@ void readGPS() {
 void sendData() {
     uint16_t sendSize = 0;
     sendSize = myTransfer.txObj(mixedData, sendSize);
+    myTransfer.sendData(sendSize);
 }
 
 void updateScreen() {
