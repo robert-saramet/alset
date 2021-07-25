@@ -1,4 +1,5 @@
 #include "SerialTransfer.h"
+#include "I2CTransfer.h"
 #include "Ultrasonic.h"
 #include "Servo.h"
 
@@ -23,7 +24,8 @@ unsigned int rps = 0;
 Servo servo;
 Servo ESC;
 
-SerialTransfer myTransfer;
+SerialTransfer transferSerial;
+I2CTransfer transferI2C;
 
 #define F_ECHO A0
 #define F_TRIG A1 
@@ -37,20 +39,26 @@ Ultrasonic sonarF(F_TRIG, F_ECHO, TIMEOUT);
 Ultrasonic sonarFL(FL_TRIG, FL_ECHO, TIMEOUT);
 Ultrasonic sonarFR(FR_TRIG, FR_ECHO, TIMEOUT);
 
-struct MotorStruct {
+struct __attribute__((__packed__)) MotorStruct {
     int8_t relSpeed;
     uint8_t pos;
     bool turbo;
 } motors;
 
-struct SonarStruct {
+struct __attribute__((__packed__)) SonarStruct {
     uint8_t distF;
     uint8_t distFL;
     uint8_t distFR;
 } sonars;
 
-
-
+struct __attribute__((__packed__)) MixedStruct {
+    uint8_t distanceL;
+    uint8_t distanceR;
+    double lat;
+    double lng;
+    double speed;
+    char dir;
+} mixedData;
 
 void count() {
     counter++;
@@ -69,6 +77,18 @@ void getRPM() {
   }
 }
 
+void recvDataI2C() {
+    uint16_t recSize = 0;
+    recSize = transferI2C.rxObj(mixedData, recSize);
+    #ifdef DEBUG
+        Serial.print(mixedData.distanceL);
+        Serial.print(" | ");
+        Serial.println(mixedData.distanceR);
+    #endif
+}
+
+const functionPtr callbackArr[] = { recvDataI2C };
+
 void setup()
 {
     pinMode(LED_BUILTIN, OUTPUT);
@@ -79,7 +99,14 @@ void setup()
     #endif
     
     Serial1.begin(115200);
-    myTransfer.begin(Serial1);
+    transferSerial.begin(Serial1);
+    
+    Wire.begin(0);
+    configST myConfig;
+    myConfig.debug        = true;
+    myConfig.callbacks    = callbackArr;
+    myConfig.callbacksLen = sizeof(callbackArr) / sizeof(functionPtr);
+    transferI2C.begin(Wire, myConfig);
   
     servo.attach(SERVO_PIN);
     ESC.attach(ESC_PIN);
@@ -94,10 +121,10 @@ void setup()
     digitalWrite(LED_BUILTIN, HIGH);
 }
 
-void recvData() {
-    if(myTransfer.available()){
+void recvDataSerial() {
+    if(transferSerial.available()){
         uint16_t recSize = 0;
-        recSize = myTransfer.rxObj(motors, recSize);
+        recSize = transferSerial.rxObj(motors, recSize);
         lastInput = millis();
     }
 }
@@ -190,12 +217,13 @@ void readDist() {
 
 void sendData() {
     uint16_t sendSize = 0;
-    sendSize = myTransfer.txObj(sonars, sendSize);
-    myTransfer.sendData(sendSize);
+    sendSize = transferSerial.txObj(sonars, sendSize);
+    sendSize = transferSerial.txObj(mixedData, sendSize);
+    transferSerial.sendData(sendSize);
 }
 
 void loop() {
-    recvData();
+    recvDataSerial();
     getRPM();
     drive();
     readDist();
