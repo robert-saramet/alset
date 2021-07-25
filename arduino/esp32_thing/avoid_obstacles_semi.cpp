@@ -3,13 +3,13 @@
 
 SerialTransfer myTransfer;
 
-struct MotorStruct {
+struct __attribute__((__packed__)) MotorStruct {
     int8_t speed;
     uint8_t pos;
     bool turbo;
 } motors;
 
-struct SonarStruct {
+struct __attribute__((__packed__)) SonarStruct {
     uint8_t distF;
     uint8_t distFL;
     uint8_t distFR;
