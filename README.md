@@ -1,4 +1,5 @@
 ## Main architecture
+### Outdated, reference only - [current doccumentation here](https://robert-saramet.github.io/alset-v2/)
 ### 1. Boards
 <h4>
      <ul>
