@@ -42,13 +42,13 @@ Next, a pos.txt file must be created containing all the positive image filenames
 For example:
 
 ```
-openv_createsamples -info pos.txt -w 24 -h 24 -num 1000 -vec pos.vec
+opencv_createsamples -info pos.txt -w 24 -h 24 -num 1000 -vec pos.vec
 ```
 
 With the .vec file you've just created and a neg.txt file containing all the negative images filenames, you can use the `opencv_traincascade` program:
 
 ```shell
-opencv_traincascade -data YourCascadeFolder/ -vec pos.vec -bg neg.txt -w 24 -h 24 -numPos YourNumOfPosImg, -numNeg YourNumOfNegImg
+opencv_traincascade -data YourCascadeFolder/ -vec pos.vec -bg neg.txt -w 24 -h 24 -numPos YourNumOfPosImg -numNeg YourNumOfNegImg
 ```
     
 Complete documention on these commands can be found on the [opencv website]( https://docs.opencv.org/3.4/dc/d88/tutorial_traincascade.html).
@@ -59,7 +59,7 @@ Alternatively, you can use the unofficial [GUI version](https://amin-ahmadi.com/
 The HAAR cascades are loaded at runtime by the raspberry pi, which uses opencv to recognize the signs captured by the camera. The generated output(position, distance etc) is then processed.
 
 ### Lane Following
-This works only on marked roads. It detects centre lines using Canny edge detection. After processing, a geometric line is generated for determining the car's position relative to the road. 
+This feature works only on marked roads. It detects centre lines using Canny edge detection. After processing (grayscaling the image, blurring, applying edge detection to get contours, cropping it accordingly), a list of geometric lines is generated. In the future, those lines will be "merged" into one and the final line will decide the direction the car has to go. That way, medium turns should be manageable without the driver's assistance. However, using it on unmarked roads or poorly marked may result in unexpected behaviour.
 
 ### GPS
 - ##### **Arduino Side**
