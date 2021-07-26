@@ -15,19 +15,35 @@ struct __attribute__((__packed__)) SonarStruct {
     uint8_t distFR;
 } sonars;
 
+struct __attribute__((__packed__)) MixedStruct {
+    uint8_t distanceL;
+    uint8_t distanceR;
+    double lat;
+    double lng;
+    double speed;
+    char dir;
+} mixedData;
+
 bool turbo = 0;
 bool manual = 0;
 bool lastCross = 0;
+bool fullAuto = 0;
 
 short distF;
 short distFL;
 short distFR;
+short distL;
+short distR;
+
+long distLFL;
+long distRFR;
 
 struct OldData {
     struct SonarStruct sonars;
+    struct MixedStruct mixedData;
     struct MotorStruct motors;
     bool manual;
-} old {{45, 45, 45}, {0, 90, 0}, 1};
+} old {{60, 60, 60}, {40, 40, 0, 0, 0, 'L'}, {0, 90, 0}, 1};
 
 long lastSend = millis();
 
@@ -40,13 +56,16 @@ void sendSpeed(int speed = 0, int pos = 90, bool turbo = 0) {
     myTransfer.sendData(sendSize);
 }
 
-void getSonar() {
-    if(myTransfer.available()){
+void recvData() {
+    if (myTransfer.available()){
         uint16_t recSize = 0;
         recSize = myTransfer.rxObj(sonars, recSize);
+        recSize = myTransfer.rxObj(mixedData, recSize);
         distF = sonars.distF;
         distFL = sonars.distFL;
         distFR = sonars.distFR;
+        distL = mixedData.distanceL;
+        distR = mixedData.distanceR;
     }
 }
 
@@ -141,7 +160,7 @@ void loop()
           mapY = 0;
         }
       
-        getSonar();
+        recvData();
       
         if ((millis() - lastSend) > 30) {
             sendToJoystick();
@@ -167,81 +186,155 @@ void loop()
             mapX = map(PS4.LStickX(), -128, 127, 0, 180);
         }
         else {
-            if (sonars != old.sonars) {
-                if (distF >= 60 && distFL >= 60 & distFR >= 60) {
+            if (sonars != old.sonars || ((mixedData.distanceL != old.mixedData.distanceL) || (mixedData.distanceR != old.mixedData.distanceR))) {
+                if (distF >= 60 && (distFL >= 60 && distFR >= 60) && (distL >= 40 && distR >= 40)) {
                     mapX = 90;
                 }
-                else if (distF <= 60 && (distFL < 60 | distFR < 60) && (distFL > 40 && distFR > 40))  {
-                    if (distFL < distFR) {
+                else if (distF <= 60 && ((distFL < 60 | distFR < 60) && (distFL > 40 && distFR > 40)) || ((distL < 40 && distR < 40) && (distR > 25 && distL > 25)))  {
+                    if ((distFL <= distFR) && (distL <= distR)) {
                         if (mapY >= 0) {
                             mapX = 90 + 90;
                         }
                         else {
                             mapX = 90 - 90;
-                            if (old.motors.speed > 0) {
-                                sendSpeed();
-                                delay(100);
+                            if (fullAuto) {
+                                if (old.motors.speed > 0) {
+                                    sendSpeed();
+                                    delay(100);
+                                }
+                            }
+                        }
+                    }
+                    else if ((distFL >= distFR) && (distL >= distR)) {
+                        if (mapY >= 0) {
+                            mapX = 90 - 90;
+                        }
+                        else {
+                            mapX = 90 + 90;
+                            if (fullAuto) {
+                                if (old.motors.speed > 0) {
+                                    sendSpeed();
+                                    delay(100);
+                                }
                             }
                         }
                     }
                     else {
-                        if (mapY >= 0) {
-                            mapX = 90 - 90;
+                        distLFL = 5 * distL + 4 * distFL;
+                        distRFR = 5 * distR + 4 * distFR;
+                        if (distLFL >= distRFR) {
+                            if (mapY >= 0) {
+                                mapX = 90 - 90;
+                            }
+                            else {
+                                mapX = 90 + 90;
+                                if (fullAuto) {
+                                    if (old.motors.speed > 0) {
+                                        sendSpeed();
+                                        delay(100);
+                                    }
+                                }
+                            }
                         }
                         else {
+                            if (mapY <= 0) {
+                                mapX = 90 + 90;
+                            }
+                            else {
+                                mapX = 90 - 90;
+                                if (fullAuto) {
+                                    if (old.motors.speed > 0) {
+                                        sendSpeed();
+                                        delay(100);
+                                    }
+                                }
+                            }
+                        }
+                    }    
+                }
+                else if ((distFL <= 40 || distFR <= 40) && (distFL > 10 && distFR > 10) || ((distL <= 25 || distR <= 25) && (distL > 5 && distR > 5)))  {
+                    if ((distFL <= distFR) && (distL <= distR)) {
+                        if (mapY >= 0) {
                             mapX = 90 + 90;
-                            if (old.motors.speed > 0) {
-                                sendSpeed();
-                                delay(100);
+                        }
+                        else {
+                            mapX = 90 - 90;
+                            if (fullAuto) {
+                                if (old.motors.speed > 0) {
+                                    sendSpeed();
+                                    delay(100);
+                                }
                             }
                         }
                     }
-                }
-                else if ((distFL <= 40 | distFR <= 40) && (distFL > 10 && distFR > 10))  {
-                    if (distFL < distFR) {
+                    else if ((distFL >= distFR) && (distL >= distR)) {
                         if (mapY >= 0) {
-                            mapX = 90 + 90;
+                            mapX = 90 - 90;
                         }
                         else {
-                            mapX = 90 - 90;
-                            if (old.motors.speed > 0) {
-                                sendSpeed();
-                                delay(100);
+                            mapX = 90 + 90;
+                            if (fullAuto) {
+                                if (old.motors.speed > 0) {
+                                    sendSpeed();
+                                    delay(100);
+                                }
                             }
                         }
                     }
                     else {
-                        if (mapY >= 0) {
-                            mapX = 90 - 90;
-                        }
-                        else {
-                            mapX = 90 + 90;
-                            if (old.motors.speed > 0) {
-                                sendSpeed();
-                                delay(100);
+                        distLFL = 5 * distL + 4 * distFL;
+                        distRFR = 5 * distR + 4 * distFR;
+                        if (distLFL > distRFR) {
+                            if (mapY >= 0) {
+                                mapX = 90 - 90;
+                            }
+                            else {
+                                mapX = 90 + 90;
+                                if (fullAuto) {
+                                    if (old.motors.speed > 0) {
+                                        sendSpeed();
+                                        delay(100);
+                                    }
+                                }
                             }
                         }
-                    }
-                }
-                else if ((distFL <= 10) | (distFR <= 10)) {
-                    sendSpeed();
-                    delay(200);
-                    SonarStruct values1 = sonars;
-                    getSonar();
-                    if (values1 != sonars) {
-                        SonarStruct values2 = sonars;
-                        delay(100);
-                        getSonar();
-                        if (sonars != values2) {
-                            sonars.distF = (sonars.distF + values1.distF + values2.distF) / 3;
-                            sonars.distFL = (sonars.distFL + values1.distFL + values2.distFL) / 3;
-                            sonars.distFR = (sonars.distFR + values1.distFR + values2.distFR) / 3;
+                        else {
+                            if (mapY <= 0) {
+                                mapX = 90 + 90;
+                            }
+                            else {
+                                mapX = 90 - 90;
+                                if (fullAuto) {
+                                    if (old.motors.speed > 0) {
+                                        sendSpeed();
+                                        delay(100);
+                                    }
+                                }
+                            }
                         }
-                    }
-              
-                    if ((distFL < 10) | (distFR < 10)) {
-                        mapY = -60;
-                        mapX = 90;
+                    }    
+                }
+                else if ((distFL <= 10) || (distFR <= 10) || (distL <= 5) || (distR <= 5)) {
+                    if (fullAuto) {
+                        sendSpeed();
+                        delay(200);
+                        SonarStruct values1 = sonars;
+                        recvData();
+                        if (values1 != sonars) {
+                            SonarStruct values2 = sonars;
+                            delay(100);
+                            recvData();
+                            if (sonars != values2) {
+                                sonars.distF = (sonars.distF + values1.distF + values2.distF) / 3;
+                                sonars.distFL = (sonars.distFL + values1.distFL + values2.distFL) / 3;
+                                sonars.distFR = (sonars.distFR + values1.distFR + values2.distFR) / 3;
+                            }
+                        }
+                  
+                        if ((distFL < 10) || (distFR < 10) || (distL < 5) || (distR < 5)) {
+                            mapY = -60;
+                            mapX = 90;
+                        }
                     }
                 }
             }
@@ -254,7 +347,7 @@ void loop()
         Serial.println(mapX);
       
         sendSpeed(mapY, mapX, turbo);
-        old = {sonars, motors, manual};
+        old = {sonars, mixedData, motors, manual};
     }
     else {
         sendSpeed();
