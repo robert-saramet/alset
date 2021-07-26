@@ -29,7 +29,6 @@
 ### Controller
 Alset can be operated using a PS4 controller connected via bluetooth. In this scope, the MAC address of the console bound to the controller must be obtained using [this tool](https://github.com/user-none/sixaxispairer) and assigned to the ESP32. In order to drive forward, hold the right trigger. To brake, hold both the right and left trigger. To reverse, first brake, then hold the left trigger. The acceleration is proportional to the strength applied to the trigger. There is a turbo mode available by holding the triangle button, which increases the minimum and maximum speed. Moreover, by pressing the cross button, the user can switch between fully manual and assisted mode. In fully manual mode, the user controls both the motor throttle and the servo direction. In assisted mode, the pathfinding algorithm controls the direction and the user remains in control of throttle. This is done as an additional safety feature. Regardless of mode, feedback on distance to obstacles is provided to the user in two ways: first, the RGB leds on the controller fade from green to red depending on distance to nearest object; second, the dual vibration motors of the controller vibrate proportional to the distance to the nearest object on each side (front left and front right).
 
-
 ### Safety
 Three individual switches for motors, arduino circuit and raspberry pi + router allow for easy testing without any risks, as well as disabling features not currently desired (e.g. disabling raspberry pi when not using opencv). If any device loses power while driving or if signal is lost or too outdated, the car stops immediately.
 
@@ -37,14 +36,14 @@ Three individual switches for motors, arduino circuit and raspberry pi + router 
 The Haar cascade model is used with opencv, thus traffic signs can easily be implemented with the scripts in the "tools" folder.
 The pipeline consists of creating a reasonable number of positive samples (500+ images that contain the sign) and at least half the number of negative images (images that do not contain the sign). The dataset we used can be found [here](https://www.mapillary.com/dataset/trafficsign) and consists of ~40000 images in total, all labeled in JSON files.
 
-Next, a pos.txt file must be created containing all the positive image filenames (this can be achieved via the tools/parse_json.py script). It will be used for creating the .vec file. To do that, you will also need the opencv toolkit. On UNIX systems, the package manager can install everything for you, but on Windows you have to download the [3.4.x version](https://sourceforge.net/projects/opencvlibrary/files/opencv-win/), not the latest one, since future versions no longer contain the cascade training toolkit. After downloading the opencv tools, you are ready to start. To generate the .vec file mentioned earlier, you need to use the `openv_createsamples`{:.shell} program.
+Next, a pos.txt file must be created containing all the positive image filenames (this can be achieved via the tools/parse_json.py script). It will be used for creating the .vec file. To do that, you will also need the opencv toolkit. On UNIX systems, the package manager can install everything for you, but on Windows you have to download the [3.4.x version](https://sourceforge.net/projects/opencvlibrary/files/opencv-win/), not the latest one, since future versions no longer contain the cascade training toolkit. After downloading the opencv tools, you are ready to start. To generate the .vec file mentioned earlier, you need to use the `openv_createsamples` program.
 For example:
 
 ```
 openv_createsamples -info pos.txt -w 24 -h 24 -num 1000 -vec pos.vec
 ```
 
-With the .vec file you've just created and a neg.txt file containing all the negative images filenames, you can use the `opencv_traincascade`{:.shell} program:
+With the .vec file you've just created and a neg.txt file containing all the negative images filenames, you can use the `opencv_traincascade` program:
 
 ```shell
 opencv_traincascade -data YourCascadeFolder/ -vec pos.vec -bg neg.txt -w 24 -h 24 -numPos YourNumOfPosImg, -numNeg YourNumOfNegImg
@@ -52,7 +51,7 @@ opencv_traincascade -data YourCascadeFolder/ -vec pos.vec -bg neg.txt -w 24 -h 2
     
 Complete documention on these commands can be found on the [opencv website]( https://docs.opencv.org/3.4/dc/d88/tutorial_traincascade.html).
 
-The final cascade.xml file can be found in `YourCascadeFolder`{:.shell}, as well as the stages (stage0.xml, stage1.xml, stage2.xml etc), which you won't need at the moment. They are mainly used for downgrading your cascade or for saving progress when the training stops unexpectedly.
+The final cascade.xml file can be found in `YourCascadeFolder`, as well as the stages (stage0.xml, stage1.xml, stage2.xml etc), which you won't need at the moment. They are mainly used for downgrading your cascade or for saving progress when the training stops unexpectedly.
 Alternatively, you can use the unofficial [GUI version](https://amin-ahmadi.com/cascade-trainer-gui/).
 
 The HAAR cascades are loaded at runtime by the raspberry pi, which uses opencv to recognize the signs captured by the camera. The generated output(position, distance etc) is then processed.
