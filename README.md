@@ -1,6 +1,6 @@
-# Note - View Presentation [HERE](https://robert-saramet.github.io/alset-v2)
-
 ![image](https://raw.githubusercontent.com/robert-saramet/alset-v2/db09ef69e4e6436f0b647ece5fb87bbe2354e2f0/docs/images/1.jpg)
+
+# Note - View Presentation [HERE](https://robert-saramet.github.io/alset-v2)
 
 ### Introduction
 *Alset is a small-scale proof-of-concept autonomous car which can react to traffic signs and navigate via GPS, follow road lanes, and pathplan around obstacles. Moreover, Alset can be used as a fully universal kit to make any and all RC cars intelligent. It is highly modular and very safe.*
