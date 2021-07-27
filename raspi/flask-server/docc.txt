@@ -1,0 +1,3 @@
+The communication with the server is done via a flask server, which can be accessed while in close proximity to the car by connecting to its wi-fi router. The webapp allows the user to enter the destination and if it exists, a route will be chosen by the car.
+
+ROAD FOLLOWING

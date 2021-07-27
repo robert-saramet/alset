@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="https://js.api.here.com/v3/3.1/mapsjs-core.js" type="text/javascript" charset="utf-8"></script>
+		<script src="https://js.api.here.com/v3/3.1/mapsjs-service.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+	<body>
+		<textarea id="destination"></textarea>
+		<input id="submit" type="button" onclick="onSubmit()" value="Submit"></input>
+		<style>
+			#destination {
+				width: 100%;
+				height: 40%;
+				font-size: 200%;
+			}
+			#submit {
+				position: absolute;
+				left: 30%;
+				width: 40%;
+				height: 10%;
+				font-size: 200%;
+				text-align: center;
+			}
+		</style>
+		<script>
+			function onSubmit() {
+				let button = document.getElementById("destination");
+				if (!navigator.geolocation) return;
+				
+				navigator.geolocation.getCurrentPosition((position) => {
+					postData(button.value, position.coords).then((data) => {
+						if (data.status == 0) {
+							// Set the background red and let
+							// the user enter a new destination
+							document.body.style.backgroundColor = "red";
+						}
+						else if (data.status == 1) {
+							// Set the background green and hide the text-box
+							document.body.style.backgroundColor = "green";
+							document.getElementById("destination").remove();
+							let button = document.getElementById("submit");
+							button.value = '';
+							button.remove();
+						}
+					});
+				});
+			}
+
+			async function postData(destination_str, current_location) {
+				let  data = {
+					destination: destination_str,
+					current_lat: current_location.latitude,
+					current_long: current_location.longitude
+				};
+				const response = await fetch('http://127.0.0.1:5000/test', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(data),
+				})
+				return response.json();
+			}
+		</script>
+	</body>
+</html>
