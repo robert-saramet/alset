@@ -8,11 +8,12 @@
 ### Features
 - [x] Traffic sign detection
 - [x] Road/lane following
+- [x] High-speed FPV live stream
 - [x] Extensive communications
 - [x] Redundant safety features
 - [x] PS4 controller support
 - [x] GPS navigation webapp
-- [x] Android app
+- [x] Phone app
 - [x] Pathfinding
 - [x] Modularity
 - [x] LCD display
@@ -85,8 +86,17 @@ Another enhancement from v1 is the high modularity, enabling simple addition, re
 ### Speed control
 Speed control is a work in progress. Currently, wheel speed can be measured using an optical speed sensor connected to an interrupt-capable pin. The speed control algorithm itself remains to be implemented soon. A slider for setting min and max speed range will also be enabled.
 
+### Powering
+There are three power sources used on Alset, as follows: RC car is powered by its built-in NiMH battery pack, arduino circuit is powered by two 18650 cells in parallel, and a powerbank provides for the raspberry pi and router. The reasons for this seemingly complicated scheme are:
+- since RC Cars require special battery packs with very high discharge rates and almost no safety features, they are a bad choice for powering anything other than the motors.
+- the arduino circuits cannot procure enough power from usb, plus so many cables would be quite messy
+- for a raspberry pi and router, a commercial powerbank makes much more sense than a custom circuit
+- furthermore, the aforementioned two devices might be considered irrelevant by other users, and may be skipped altogether
+
+In order to charge the batteries of the arduino circuit, just connect a regular usb charger to the module on the board. Do the same for the powerbank. For charging the battery of the RC car, since there are countless charger, battery, and connector types, and since Alset tries to be as cross-platform as possible, you should use the OEM hardware.
+
 ### Debugging
-Debugging Alset v2 is made easy by the board design that allows easy testing of electrical connections and quick removal of components, as well as the debug flag available to turn on usb communications for inspecting every value. The LCD screen also displays many of these values, offering helpful insight without the need for a PC. Status LEDS will soon be enabled to further assist in this scope.
+Debugging Alset v2 is made easy by the board design that allows easy testing of electrical connections and quick removal of components, as well as the debug flag available to turn on usb communications for inspecting every value. The LCD screen also displays many of these values, offering helpful insight without the need for a PC. Status LEDS will soon be enabled to further assist in this scope. In addition, all usb ports are placed on the same outer side of the robot to facilitate debugging.
 
 ---
 
@@ -164,5 +174,5 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ---
 
 ### Support us
-- ##### BTC: bc1q9zjrnzd04w27sx4dh0hy9n06hu624dmvjc495wc
+- ##### BTC: bc1q9zjrnzd04w27sx4d0hy9n06hu624dmvjc495wc
 [![219971756-519102119360658-4905840849781814643-n.png](https://i.postimg.cc/nLCd65GD/219971756-519102119360658-4905840849781814643-n.png)](https://postimg.cc/JyCcXpgr)
