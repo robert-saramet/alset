@@ -229,7 +229,7 @@ void calcDir() {
         if (distF >= 60 && (distFL >= 60 && distFR >= 60) && (distL >= 40 && distR >= 40)) {
             mapX = 90;
         }
-        else if ((distF <= 60) && (((distFL < 60 || distFR < 60) && (distFL > 40 && distFR > 40)) || ((distL < 40 && distR < 40) && (distR > 25 && distL > 25)))) {
+        else if ((distF <= 60) && (((distFL < 60 || distFR < 60) && (distFL > 40 && distFR > 40)) || ((distL < 40 || distR < 40) && (distR > 25 && distL > 25)))) {
             calc();
         }
         else if (((distFL <= 40 || distFR <= 40) && (distFL > 10 && distFR > 10)) || ((distL <= 25 || distR <= 25) && (distL > 5 && distR > 5))) {
