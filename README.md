@@ -59,7 +59,7 @@ Alternatively, you can use the unofficial [GUI version](https://amin-ahmadi.com/
 The HAAR cascades are loaded at runtime by the raspberry pi, which uses opencv to recognize the signs captured by the camera. The generated output(position, distance etc) is then processed.
 
 ### Lane Following
-This feature works only on marked roads. It detects centre lines using Canny edge detection. After processing (grayscaling the image, blurring, applying edge detection to get contours, cropping it accordingly), a list of geometric lines is generated. In the future, those lines will be "merged" into one and the final line will decide the direction the car has to go. That way, medium turns should be manageable without the driver's assistance. However, using it on unmarked roads or poorly marked may result in unexpected behaviour.
+This feature works only on marked roads. It detects centre lines using Canny edge detection. After processing (grayscaling the image, blurring, applying edge detection to get contours, cropping it accordingly), a list of geometric lines is generated. Those lines are then added into a single vector, which will decide the direction the car has to go. That way, medium turns should be manageable without the driver's assistance. However, using it on unmarked roads or poorly marked may result in unexpected behaviour.
 
 ### GPS
 - ##### **Arduino Side**
