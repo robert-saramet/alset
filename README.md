@@ -115,12 +115,14 @@ LEDs, level shifters, 8p DIP switch, LED bar graph, buzzer
 ### Third Party
 
 - #### [Mapillary Traffic Sign Dataset](https://www.mapillary.com/dataset/trafficsign)
-- #### [HERE Maps](https://developer.here.com/develop/rest-apis)
-- #### [OpenCV](https://opencv.org/)
+- #### [HERE Maps API](https://developer.here.com/develop/rest-apis)
+- #### [OpenCV Library](https://opencv.org/)
 - #### [Cascade Trainer GUI](https://amin-ahmadi.com/cascade-trainer-gui/)
-- #### [PySerial Library](https://github.com/pyserial/pyserial)
+- #### [MJPG Streamer](https://github.com/jacksonliam/mjpg-streamer)
+- #### [SerialTransfer Library](https://github.com/PowerBroker2/SerialTransfer)
 - #### [PS4 Controller Library](https://github.com/aed3/PS4-esp32)
-- #### [TinyGPS++](https://github.com/mikalhart/TinyGPSPlus)
+- #### [TinyGPS++ Library](https://github.com/mikalhart/TinyGPSPlus)
+- #### [Adafruit AHRS Library](https://github.com/adafruit/Adafruit_AHRS)
 
 
 ---
