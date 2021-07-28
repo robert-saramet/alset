@@ -3,23 +3,32 @@
 	<head>
 		<script src="https://js.api.here.com/v3/3.1/mapsjs-core.js" type="text/javascript" charset="utf-8"></script>
 		<script src="https://js.api.here.com/v3/3.1/mapsjs-service.js" type="text/javascript" charset="utf-8"></script>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 	</head>
 	<body>
-		<textarea id="destination"></textarea>
-		<input id="submit" type="button" onclick="onSubmit()" value="Submit"></input>
+		<textarea class="form-control"></textarea>
+		<div id="submit">
+			<input type="button" onclick="onSubmit()" value="Submit" class="btn btn-primary"></input>
+		</div>
 		<style>
-			#destination {
-				width: 100%;
+			.form-control {
+				margin: 3% 3% 3% 3%;
+				width: 94%;
 				height: 40%;
 				font-size: 200%;
 			}
-			#submit {
+			.btn-primary {
 				position: absolute;
 				left: 30%;
 				width: 40%;
 				height: 10%;
 				font-size: 200%;
 				text-align: center;
+				border-radius: 5%;
 			}
 		</style>
 		<script>
