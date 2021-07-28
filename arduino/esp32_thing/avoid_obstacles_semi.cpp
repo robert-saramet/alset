@@ -1,5 +1,7 @@
 #include "SerialTransfer.h"
-#include <PS4Controller.h>
+#include "PS4Controller.h"
+#include <Adafruit_Sensor_Calibration.h>
+#include <Adafruit_AHRS.h>
 
 #undef DEBUG
 
@@ -26,6 +28,12 @@ struct __attribute__((__packed__)) MixedStruct {
     char dir;
 } mixedData;
 
+struct __attribute__((__packed__)) GyroStruct {
+    float roll;
+    float pitch;
+    float heading;
+} imu;    
+
 struct OldData {
     struct SonarStruct sonars;
     struct MixedStruct mixedData;
@@ -50,7 +58,105 @@ long distRFR;
 int mapX = 90;
 int mapY = 0;
 
+float gx, gy, gz;
+short counter = 0;
+
 long lastSend = millis();
+
+Adafruit_Sensor *accelerometer, *gyroscope, *magnetometer;
+
+#include "NXP_FXOS_FXAS.h"
+
+Adafruit_NXPSensorFusion filter;
+
+#if defined(ADAFRUIT_SENSOR_CALIBRATION_USE_EEPROM)
+  Adafruit_Sensor_Calibration_EEPROM cal;
+#else
+  Adafruit_Sensor_Calibration_SDFat cal;
+#endif
+
+#define FILTER_UPDATE_RATE_HZ 100
+#define POLL_RATE 10
+
+uint32_t timestamp;
+
+TaskHandle_t GyroTask;
+
+void setupIMU() {
+        xTaskCreatePinnedToCore(
+        GyroTaskCode,    // Function that should be called
+        "Update Gyro",   // Name of the task (for debugging)
+        1000,            // Stack size (bytes)
+        NULL,            // Parameter to pass
+        1,               // Task priority
+        NULL,             // Task handle
+        0                // Core to run task on
+  );
+  
+    if (!cal.begin()) {
+        #ifdef DEBUG
+            Serial.println("Failed to initialize calibration helper");
+        #endif
+    } else if (! cal.loadCalibration()) {
+        #ifdef DEBUG
+            Serial.println("No calibration loaded/found");
+        #endif
+    }
+
+    if (!init_sensors()) {
+        #ifdef DEBUG
+            Serial.println("Failed to find sensors");
+        #endif
+        while (1) delay(10);
+    }
+  
+    #ifdef DEBUG
+        accelerometer->printSensorDetails();
+        gyroscope->printSensorDetails();
+        magnetometer->printSensorDetails();
+    #endif
+
+    setup_sensors();
+    filter.begin(FILTER_UPDATE_RATE_HZ);
+    timestamp = millis();
+
+    Wire.setClock(400000); // 400KHz
+}
+
+void GyroTaskCode(void * parameter) {
+    for (;;) {
+        if ((millis() - timestamp) < (1000 / FILTER_UPDATE_RATE_HZ)) {
+            return;
+        }
+        timestamp = millis();
+
+        sensors_event_t accel, gyro, mag;
+        accelerometer->getEvent(&accel);
+        gyroscope->getEvent(&gyro);
+        magnetometer->getEvent(&mag);
+
+        cal.calibrate(mag);
+        cal.calibrate(accel);
+        cal.calibrate(gyro);
+
+        gx = gyro.gyro.x * SENSORS_RADS_TO_DPS;
+        gy = gyro.gyro.y * SENSORS_RADS_TO_DPS;
+        gz = gyro.gyro.z * SENSORS_RADS_TO_DPS;
+
+        filter.update(gx, gy, gz, 
+                accel.acceleration.x, accel.acceleration.y, accel.acceleration.z, 
+                mag.magnetic.x, mag.magnetic.y, mag.magnetic.z);
+
+        if (counter++ <= POLL_RATE) {
+            return;
+        }
+        counter = 0;
+
+        imu.roll = filter.getRoll();
+        imu.pitch = filter.getPitch();
+        imu.heading = filter.getYaw();
+    }
+}
 
 void sendSpeed(int speed = 0, int pos = 90, bool turbo = 0) {
     uint16_t sendSize = 0;
@@ -276,10 +382,19 @@ void printDebug() {
         Serial.println(distL);
         Serial.print("Sonar right: ");
         Serial.println(distR);
+        Serial.println();
         Serial.print("Steering angle: ");
         Serial.println(mapX);
         Serial.print("Throttle: ");
         Serial.println(mapY);
+        Serial.println();
+        Serial.print("Roll: ");
+        Serial.println(imu.roll);
+        Serial.print("Pitch: ");
+        Serial.println(imu.pitch)
+        Serial.print("Heading: ");
+        Serial.println(imu.heading);
+        Serial.println();
     #endif
 }
 
@@ -292,6 +407,8 @@ void setup()
     PS4.begin("00:de:ad:be:ef:00");
     Serial2.begin(115200);
     myTransfer.begin(Serial2);
+
+    setupIMU();
 }
 
 void loop()
