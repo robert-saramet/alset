@@ -23,6 +23,7 @@ cap = cv2.VideoCapture('test.mp4')
 stop_sign_handler = signs.StopSignHandler("stop_cascade.xml")
 speed_limit_handler = signs.SpeedLimitHandler("speed_limit_cascade.xml")
 
+# used for indexing the current sign to check for in the next frame
 tick_index = 0
 
 # also shows frame but whatever
@@ -42,6 +43,7 @@ def process_frame(frame):
 		(0, height / 1.5)
 	]
 
+	# used to crop the detection area
 	def region_of_interest(img, vertices):
 		mask = np.zeros_like(img)
 		match_mask_color = 255
@@ -49,7 +51,7 @@ def process_frame(frame):
 		masked_image = cv2.bitwise_and(img, mask)
 		return masked_image
 
-	def draw_the_lines(img, lines):
+	def draw_lines(img, lines):
 		img = np.copy(img)
 		blank_image = np.zeros((img.shape[0], img.shape[1], 3), dtype=np.uint8)
 
@@ -62,7 +64,7 @@ def process_frame(frame):
 
 	gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 	blur_image = cv2.blur(gray_image, (5, 5))
-	canny_image = cv2.Canny(blur_image, 100, 200)
+	canny_image = cv2.Canny(blur_image, 50, 150)
 	cropped_image = region_of_interest(canny_image,
 					np.array([region_of_interest_vertices], np.int32),)
 	lines = cv2.HoughLinesP(cropped_image,
@@ -72,8 +74,19 @@ def process_frame(frame):
 							lines=np.array([]),
 							minLineLength=40,
 							maxLineGap=25)
-	highlighted_image = draw_the_lines(image, lines)
-	
+	#highlighted_image = draw_lines(image, lines)
+	highlighted_image = image
+	if lines.any():
+		init_pos = [lines[0][0][0], lines[0][0][1]]
+		merged_vec = [lines[0][0][0], lines[0][0][1]]
+		for l in lines[0]:
+			dx = l[2] - l[0]
+			dy = l[3] - l[1]
+			merged_vec[0] += dx
+			merged_vec[1] += dy
+		
+		highlighted_image = draw_lines(image, [[(merged_vec[0], merged_vec[1], init_pos[0], init_pos[1])]])
+
 	# Sign recognition
 	if len(sys.argv) > 1 and sys.argv[1] == '-s':
 		if tick_index % 2 == 0:
