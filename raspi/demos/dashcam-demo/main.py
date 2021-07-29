@@ -17,6 +17,7 @@ import cv2
 import numpy as np
 import sys
 import signs
+import math
 
 cap = cv2.VideoCapture('test.mp4')
 
@@ -102,11 +103,15 @@ def process_frame(frame):
 					cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
 	cv2.imshow("demo", highlighted_image)
+	return (merged_vec[0] - init_pos[0], merged_vec[1] - init_pos[1])
 
+default_angle = 29
 while cap.isOpened():
 	ret, frame = cap.read()
-	process_frame(frame)
-	
+	line_vec = process_frame(frame)
+	angle = math.degrees(math.atan2(line_vec[1], line_vec[0]))
+	print(angle + default_angle)
+
 	if cv2.waitKey(25) & 0xFF == ord('q'):
 		break
 
