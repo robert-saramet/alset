@@ -43,7 +43,9 @@ struct OldData {
 
 bool turbo = 0;
 bool manual = 0;
+bool motorsOn = 0;
 bool lastCross = 0;
+bool lastSquare = 0;
 bool fullAuto = 0;
 
 short distF;
@@ -187,7 +189,8 @@ void getJoystick() {
     else {
         mapY = 0;
     }
-      
+
+    // manual
     bool cross = PS4.Cross();
     if (cross != lastCross) {
         if (cross) {
@@ -195,6 +198,15 @@ void getJoystick() {
         }
     }
     lastCross = cross;
+
+    // kill switch
+    bool square = PS4.Square();
+    if (square != lastSquare) {
+        if (square) {
+            motorsOn = !motorsOn;
+        }
+    }
+    lastSquare = square;
 }
 
 void setJoystick() {
@@ -429,8 +441,13 @@ void loop()
             calcDir();
         }
       
-        sendSpeed(mapY, mapX, turbo);
-        old = {sonars, mixedData, motors, manual};
+        if (motorsOn) {
+            sendSpeed(mapY, mapX, turbo);
+            old = {sonars, mixedData, motors, manual};
+        }
+        else {
+            sendSpeed();
+        }
         
         printDebug();
     }
