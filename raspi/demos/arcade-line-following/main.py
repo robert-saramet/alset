@@ -16,11 +16,9 @@ import matplotlib.pylab as plt
 import cv2
 import numpy as np
 import sys
-import math
-import serial
 import signs
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture('test.mp4')
 
 stop_sign_handler = signs.StopSignHandler("stop_cascade.xml")
 speed_limit_handler = signs.SpeedLimitHandler("speed_limit_cascade.xml")
@@ -106,18 +104,13 @@ def process_frame(frame):
 	cv2.imshow("demo", highlighted_image)
 	return (merged_vec[0] - init_pos[0], merged_vec[1] - init_pos[1])
 
-ser = serial.Serial('/dev/ttyUSB0')
-if not ser.is_open():
-	print("Could not initialize serial")
-	exit()
-default_angle = 0 # -arcade- line following
+
 while cap.isOpened():
 	ret, frame = cap.read()
 	line_vec = process_frame(frame)
-	angle = atan2(line_vec[1], line_vec[0])
-	ser.write(bytes(angle))
+	angle = math.degrees(math.atan2(line_vec[1], line_vec[0]))
+	print(angle)
 
 	if cv2.waitKey(25) & 0xFF == ord('q'):
 		break
 
-ser.close()
