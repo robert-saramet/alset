@@ -17,6 +17,8 @@ char cmd[] = "move";
 
 bool brake = 1;
 
+int maxSpeed = 50;
+
 void sendSpeed(int relSpeed = 0, int pos = 0) {
     uint16_t sendSize = 0;
     testStruct.relSpeed = relSpeed;
@@ -57,10 +59,15 @@ BLYNK_WRITE(V1) {
     int posX = param[0].asInt();
     int posY = param[1].asInt();
     int mapX = map(posX, -255, 255, 0, 180);
-    int mapY = map(posY, -255, 255, -100, 100);
+    int mapY = map(posY, -255, 255, maxSpeed*-1, maxSpeed);
     sendSpeed(mapY, mapX);
   }
   else {
     sendSpeed(0, 90);
   }
+}
+
+
+BLYNK_WRITE(V2) {
+  maxSpeed = param.asInt();
 }
