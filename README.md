@@ -28,7 +28,7 @@
 - [x] Better power management
 - [x] Hardware revision
 - [ ] Crossroad detection & steering
-- [ ] Max speed slider (WIP)
+- [x] Max speed slider (WIP)
 - [ ] Speed control (WIP)
 - [ ] GPS TTS directions
 
