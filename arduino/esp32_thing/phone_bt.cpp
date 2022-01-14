@@ -1,12 +1,14 @@
 #include "SerialTransfer.h"
-#include "BluetoothSerial.h"
 
-#include <BlynkSimpleSerialBLE.h>
+#define BLYNK_USE_DIRECT_CONNECT
+#define BLYNK_PRINT Serial
+#include <BlynkSimpleEsp32_BLE.h>
+#include <BLEDevice.h>
+#include <BLEServer.h>
 
-char auth[] = "B3FFB419A40961239E202763E131A519C92915D048A32690A9E71F06A5E85CEB72ED63045F2791BAD5EF60CFD990AE85";
+char auth[] = "r70VT9kv6x1BQJ_iCe7zRaqItWJf_OBS";
 
 SerialTransfer myTransfer;
-BluetoothSerial SerialBT;
 
 struct STRUCT {
   int8_t relSpeed;
@@ -31,8 +33,9 @@ void sendSpeed(int relSpeed = 0, int pos = 0) {
 void setup()
 {
   Serial.begin(115200);
-  SerialBT.begin("Alset v2");
-  Blynk.begin(SerialBT, auth);
+  Blynk.setDeviceName("Alset");
+  Blynk.begin(auth);
+  delay(300);
   Serial2.begin(115200);
   myTransfer.begin(Serial2);
 }
