@@ -22,14 +22,14 @@ struct RemoteData {
     bool turbo, autoPilot;
 } remDat = {0, 90, 0, 0};
 
-uint8_t rxAddr[] = {0x30, 0xAE, 0xA4, 0x07, 0x0D, 0x64};
+uint8_t rxAddr[] = {0x24, 0x6F, 0x28, 0x8F, 0x53, 0x58};
 
 void readJoystick() {
     int valX = analogRead(joyR_X);
     int valY = analogRead(joyR_Y);
     joyR.x = map(valX, calR.minX, calR.maxX, 0, 180);
     joyR.y = map(valY, calR.minY, calR.maxY, 100, -100);
-    if ((joyR.x > 81) && (joyR.x < 85))
+    if ((joyR.x > 80) && (joyR.x < 100))
         joyR.x = 90;
     if ((joyR.y > -10) && (joyR.y < 11))
         joyR.y = 0;
@@ -97,7 +97,7 @@ void initComms() {
     }
     esp_now_register_send_cb(OnDataSent);
     
-    esp_now_peer_info_t peerInfo;
+    esp_now_peer_info_t peerInfo = {};
     memcpy(peerInfo.peer_addr, rxAddr, 6);
     peerInfo.channel = 0;
     peerInfo.encrypt = false;
@@ -134,5 +134,5 @@ void loop() {
     readJoystick();
     sendData();
     printDebug();
-    delay(200);
+    delay(100);
 }
