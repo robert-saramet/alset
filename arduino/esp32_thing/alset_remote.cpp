@@ -10,10 +10,10 @@ struct RemoteData {
 } remDat = {0, 90, 0, 0};
 
 struct __attribute__((__packed__)) MotorStruct {
-    int8_t speed;
+    int8_t relSpeed;
     uint8_t pos;
     bool turbo;
-} motors;
+} motors = {0, 90, 0};
 
 long lastRecv = millis();
 
@@ -29,13 +29,14 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
         Serial.println(F("ms"));
     #endif
     lastRecv = millis();
+    sendSpeed();
 }
 
 void sendSpeed() {
     uint16_t sendSize = 0;
     if (millis() - lastRecv > 200)
         remDat = {0, 90, 0, 0};
-    motors.speed = remDat.relSpeed;
+    motors.relSpeed = remDat.relSpeed;
     motors.pos = remDat.pos;
     motors.turbo = remDat.turbo;
     sendSize = serialTransfer.txObj(motors, sendSize);
@@ -62,5 +63,5 @@ void setup() {
 }
 
 void loop() {
-    sendSpeed();
+    
 }
