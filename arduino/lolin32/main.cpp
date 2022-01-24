@@ -31,8 +31,16 @@ void readJoystick() {
     joyR.y = map(valY, calR.minY, calR.maxY, 100, -100);
     if ((joyR.x > 80) && (joyR.x < 100))
         joyR.x = 90;
+    else if (joyR.x < 0)
+        joyR.x = 0;
+    else if (joyR.x > 180)
+        joyR.x = 180;
     if ((joyR.y > -10) && (joyR.y < 11))
         joyR.y = 0;
+    else if (joyR.y < -100)
+        joyR.y = -100;
+    else if (joyR.y > 100)
+        joyR.y = 100;
     joyR.btn = !digitalRead(joyR_Btn);
 }
 
