@@ -3,7 +3,7 @@
 const int stepsPerRevolution = 2048;
 const int deg30 = stepsPerRevolution / 12;
 const int deg15 = deg30 / 2;
-const int warmup = 20;
+const int warmup = 16;
 int count = 1;
 int dir = 1;
 
@@ -14,17 +14,17 @@ void setup() {
 }
 
 void loop() {
-    if (count++ >= 6) {
+    if (count++ > 6) {
         dir *= -1;
         count = 1;
     }
     
-    radarStepper.setSpeed(15);
+    radarStepper.setSpeed(16);
     radarStepper.step(warmup * dir);
-    radarStepper.setSpeed(20);
+    radarStepper.setSpeed(22);
     radarStepper.step(warmup * dir);
-    radarStepper.setSpeed(25);
+    radarStepper.setSpeed(26);
     radarStepper.step((deg15 - 2 * warmup) * dir);
 
-    delay(20);
+    delay(10);
 }
