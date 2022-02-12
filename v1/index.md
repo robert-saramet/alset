@@ -4,5 +4,5 @@
 ---
 ## [Circuit Diagram](https://github.com/robert-saramet/alset/blob/alset-v1/docs/schematics/schema.png?raw=true)
 ---
-## [Images](/alset/v1/images.md)
+## [Images](/alset/v1/images)
 ---
