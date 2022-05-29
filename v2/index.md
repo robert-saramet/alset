@@ -4,5 +4,5 @@
 ---
 ## [Early Design Plan](main_architecture.md)
 ---
-## [Video](https://drive.google.com/file/d/1yYsuGL1z-vGxxotCmbGgHX3bLXnPQZJQ/view?usp=sharing)
+## [Video](https://youtu.be/VHs-enqFx2E)
 ---
