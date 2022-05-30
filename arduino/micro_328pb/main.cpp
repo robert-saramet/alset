@@ -112,6 +112,8 @@ void updateScreen() {
             lcd.setCursor(10, 2);
             lcd.print(mixedData.lng);
             lcd.setCursor(0, 3);
+            if (mixedData.lat == 0 && mixedData.lng == 0)
+                lcd.print(F("Signal unavailable"));
             if (mixedData.dir == 'L') {
                 lcd.print(F("Steer left"));
             }
