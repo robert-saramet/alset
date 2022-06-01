@@ -508,7 +508,9 @@ void loopPS4() {
         }
       
         if (!brake) {
-            sendSpeed(mapY, mapX, turbo);
+            if (!manual && mapY == 0)
+                sendSpeed(mapY, old.motors.pos);
+            else sendSpeed(mapY, mapX, turbo);
             old = {sonars, mixedData, motors, manual};
         }
         else {
