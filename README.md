@@ -1,11 +1,4 @@
-![image](https://raw.githubusercontent.com/robert-saramet/alset-v2/db09ef69e4e6436f0b647ece5fb87bbe2354e2f0/docs/images/1.jpg)
-
-[![GitHub license](https://img.shields.io/github/license/robert-saramet/alset-v2)](https://github.com/robert-saramet/alset-v2/blob/main/LICENSE)
-[![GitHub tag (latest SemVer pre-release)](https://img.shields.io/github/v/tag/robert-saramet/alset-v2?include_prereleases)](https://github.com/robert-saramet/alset-v2/tags)
-[![GitHub (Pre-)Release Date](https://img.shields.io/github/release-date-pre/robert-saramet/alset-v2)](https://github.com/robert-saramet/alset-v2/releases)
-[![Lines of code](https://img.shields.io/tokei/lines/github/robert-saramet/alset-v2)](https://github.com/robert-saramet/alset-v2/tree/main/)
-[![GitHub issues](https://img.shields.io/github/issues/robert-saramet/alset-v2)](https://github.com/robert-saramet/alset-v2/issues)
-[![GitHub last commit](https://img.shields.io/github/last-commit/robert-saramet/alset-v2)](https://github.com/robert-saramet/alset-v2/commits/main)
+![image](https://github.com/robert-saramet/alset/blob/alset-v2/docs/images/1.jpg?raw=true)
 
 *Alset is a small-scale proof-of-concept autonomous car which can react to traffic signs and navigate via GPS, follow road lanes, and pathplan around obstacles. Moreover, Alset can be used as a fully universal kit to make any and all RC cars intelligent. It is highly modular and very safe.*
 
