@@ -1,0 +1,954 @@
+[
+    {
+        "id": "0108719f13dd5d5e",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "b891276aed1b596d",
+        "type": "ui_gauge",
+        "z": "0108719f13dd5d5e",
+        "name": "Voltage",
+        "group": "713ff4c54c03acf2",
+        "order": 0,
+        "width": "3",
+        "height": "2",
+        "gtype": "gage",
+        "title": "",
+        "label": "Volts",
+        "format": "{{value}}",
+        "min": "3.6",
+        "max": "4.2",
+        "colors": [
+            "#ff0000",
+            "#ffff80",
+            "#00ff80"
+        ],
+        "seg1": "",
+        "seg2": "3.7",
+        "className": "",
+        "x": 820,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "c3e0baa798eb4d38",
+        "type": "ui_gauge",
+        "z": "0108719f13dd5d5e",
+        "name": "Percentage",
+        "group": "713ff4c54c03acf2",
+        "order": 1,
+        "width": "3",
+        "height": "2",
+        "gtype": "wave",
+        "title": "",
+        "label": "%",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "className": "",
+        "x": 830,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "5276e77e38788917",
+        "type": "comment",
+        "z": "0108719f13dd5d5e",
+        "name": "Battery",
+        "info": "",
+        "x": 210,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "a1818ba07daa335f",
+        "type": "switch",
+        "z": "0108719f13dd5d5e",
+        "name": "Select range",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "lte",
+                "v": "3.7",
+                "vt": "str"
+            },
+            {
+                "t": "lte",
+                "v": "4.0",
+                "vt": "str"
+            },
+            {
+                "t": "lte",
+                "v": "4.2",
+                "vt": "str"
+            }
+        ],
+        "checkall": "false",
+        "repair": false,
+        "outputs": 3,
+        "x": 410,
+        "y": 480,
+        "wires": [
+            [
+                "18d41dbc42e43379"
+            ],
+            [
+                "af05e2ac4994d7ec"
+            ],
+            [
+                "a33dc368738117db"
+            ]
+        ]
+    },
+    {
+        "id": "18d41dbc42e43379",
+        "type": "range",
+        "z": "0108719f13dd5d5e",
+        "minin": "3.6",
+        "maxin": "3.7",
+        "minout": "0",
+        "maxout": "20",
+        "action": "clamp",
+        "round": false,
+        "property": "payload",
+        "name": "Map < 3.7V",
+        "x": 630,
+        "y": 460,
+        "wires": [
+            [
+                "c3e0baa798eb4d38",
+                "57197e2fabd27f1b"
+            ]
+        ]
+    },
+    {
+        "id": "af05e2ac4994d7ec",
+        "type": "range",
+        "z": "0108719f13dd5d5e",
+        "minin": "3.7",
+        "maxin": "4.0",
+        "minout": "20",
+        "maxout": "80",
+        "action": "scale",
+        "round": false,
+        "property": "payload",
+        "name": "Map < 4.0V",
+        "x": 630,
+        "y": 520,
+        "wires": [
+            [
+                "c3e0baa798eb4d38",
+                "57197e2fabd27f1b"
+            ]
+        ]
+    },
+    {
+        "id": "a33dc368738117db",
+        "type": "range",
+        "z": "0108719f13dd5d5e",
+        "minin": "4.0",
+        "maxin": "4.2",
+        "minout": "80",
+        "maxout": "100",
+        "action": "clamp",
+        "round": false,
+        "property": "payload",
+        "name": "Map < 4.2V",
+        "x": 630,
+        "y": 580,
+        "wires": [
+            [
+                "c3e0baa798eb4d38",
+                "57197e2fabd27f1b"
+            ]
+        ]
+    },
+    {
+        "id": "a429c2f1d35703d9",
+        "type": "inject",
+        "z": "0108719f13dd5d5e",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"name\":\"Alset\", \"lat\":51.05, \"lon\":-1.35 }",
+        "payloadType": "json",
+        "x": 250,
+        "y": 700,
+        "wires": [
+            [
+                "073a2d05aa99c070"
+            ]
+        ]
+    },
+    {
+        "id": "073a2d05aa99c070",
+        "type": "ui_worldmap",
+        "z": "0108719f13dd5d5e",
+        "group": "a3086d4e4ef3407f",
+        "order": 2,
+        "width": "6",
+        "height": "4",
+        "name": "",
+        "lat": "msg.payload.lat",
+        "lon": "msg.payload.lon",
+        "zoom": "16",
+        "layer": "OSMC",
+        "cluster": "",
+        "maxage": "",
+        "usermenu": "hide",
+        "layers": "hide",
+        "panit": "false",
+        "panlock": "false",
+        "zoomlock": "false",
+        "hiderightclick": "true",
+        "coords": "deg",
+        "showgrid": "false",
+        "allowFileDrop": "false",
+        "path": "/map",
+        "overlist": "DR,CO,RA,DN,HM",
+        "maplist": "OSMG,OSMC,EsriC,EsriS,EsriT,EsriDG,UKOS,SW",
+        "mapname": "",
+        "mapurl": "",
+        "mapopt": "",
+        "mapwms": false,
+        "x": 390,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "47e133abe37e40b5",
+        "type": "comment",
+        "z": "0108719f13dd5d5e",
+        "name": "Map",
+        "info": "",
+        "x": 210,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "373d49405d2ee1df",
+        "type": "comment",
+        "z": "0108719f13dd5d5e",
+        "name": "Dashboard",
+        "info": "",
+        "x": 120,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "81e652d89892bd39",
+        "type": "comment",
+        "z": "0108719f13dd5d5e",
+        "name": "Driving",
+        "info": "",
+        "x": 110,
+        "y": 860,
+        "wires": []
+    },
+    {
+        "id": "ce7a278b04193eff",
+        "type": "ui_joystick",
+        "z": "0108719f13dd5d5e",
+        "name": "Joystick",
+        "group": "7fb081f8a1cd04a7",
+        "order": 2,
+        "width": 6,
+        "height": 6,
+        "trigger": "all",
+        "timeInterval": "50",
+        "useThemeColor": true,
+        "color": "#000000",
+        "threshold": "0",
+        "directions": "all",
+        "shape": "circle",
+        "centerAtRelease": true,
+        "x": 230,
+        "y": 940,
+        "wires": [
+            [
+                "5883463125547e18",
+                "7da2f67ff4e66744"
+            ]
+        ]
+    },
+    {
+        "id": "82f633cfa5963fa8",
+        "type": "ui_slider",
+        "z": "0108719f13dd5d5e",
+        "name": "Multiplier",
+        "label": "Speed",
+        "tooltip": "",
+        "group": "7fb081f8a1cd04a7",
+        "order": 1,
+        "width": 1,
+        "height": 7,
+        "passthru": true,
+        "outs": "end",
+        "topic": "topic",
+        "topicType": "msg",
+        "min": 0,
+        "max": "100",
+        "step": 1,
+        "className": "",
+        "x": 240,
+        "y": 1100,
+        "wires": [
+            [
+                "24b1997206bb936b"
+            ]
+        ]
+    },
+    {
+        "id": "9ec213a21e76c56d",
+        "type": "comment",
+        "z": "0108719f13dd5d5e",
+        "name": "Controls",
+        "info": "",
+        "x": 220,
+        "y": 900,
+        "wires": []
+    },
+    {
+        "id": "614677bf229232ac",
+        "type": "function",
+        "z": "0108719f13dd5d5e",
+        "name": "Toggle State",
+        "func": "var last_state = context.get(\"state\") || false;\nvar state = last_state  // start the same\n\n// Usually we pass through the message and keep the state\n// When pressed, send the opposite of the state\nstate = msg.payload == \"PRESS\" ? !state : msg.payload;\n\n// If the state hasnt changed, stop the sequence here.\n// This matches the normal ui switch behavior\nif (state == last_state) \n    return null;\n\ncontext.set(\"state\", state);\nmsg.payload = state\n\n// Use the new local state (will update when round-tripped)\nmsg.txt = state ? \"Locked\" : \"Unlocked\";\nmsg.color = state ? \"default\" : \"grey\";\n\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 1380,
+        "wires": [
+            [
+                "ddafdb26362f38a8",
+                "f37b2bf814bfe02d"
+            ]
+        ]
+    },
+    {
+        "id": "ddafdb26362f38a8",
+        "type": "ui_button",
+        "z": "0108719f13dd5d5e",
+        "name": "Toggle Switch",
+        "group": "7fb081f8a1cd04a7",
+        "order": 4,
+        "width": 5,
+        "height": 1,
+        "passthru": false,
+        "label": "{{msg.txt}}",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "{{msg.color}}",
+        "className": "",
+        "icon": "",
+        "payload": "PRESS",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 480,
+        "y": 1420,
+        "wires": [
+            [
+                "614677bf229232ac"
+            ]
+        ]
+    },
+    {
+        "id": "cf3697c24b104a45",
+        "type": "inject",
+        "z": "0108719f13dd5d5e",
+        "name": "On",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 230,
+        "y": 1360,
+        "wires": [
+            [
+                "614677bf229232ac"
+            ]
+        ]
+    },
+    {
+        "id": "644bd1b70ce2fd37",
+        "type": "inject",
+        "z": "0108719f13dd5d5e",
+        "name": "Off",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "false",
+        "payloadType": "bool",
+        "x": 230,
+        "y": 1400,
+        "wires": [
+            [
+                "614677bf229232ac"
+            ]
+        ]
+    },
+    {
+        "id": "c2a7089bdae20acf",
+        "type": "mqtt in",
+        "z": "0108719f13dd5d5e",
+        "name": "B. Voltage",
+        "topic": "battery/voltage",
+        "qos": "0",
+        "datatype": "utf8",
+        "broker": "b6f23097b7854381",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 220,
+        "y": 400,
+        "wires": [
+            [
+                "a1818ba07daa335f",
+                "b891276aed1b596d"
+            ]
+        ]
+    },
+    {
+        "id": "57197e2fabd27f1b",
+        "type": "mqtt out",
+        "z": "0108719f13dd5d5e",
+        "name": "B. Level",
+        "topic": "battery/level",
+        "qos": "0",
+        "retain": "true",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "b6f23097b7854381",
+        "x": 820,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "f37b2bf814bfe02d",
+        "type": "mqtt out",
+        "z": "0108719f13dd5d5e",
+        "name": "M. Lock",
+        "topic": "motor/lock",
+        "qos": "1",
+        "retain": "true",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "b6f23097b7854381",
+        "x": 660,
+        "y": 1380,
+        "wires": []
+    },
+    {
+        "id": "b896cd63f1009d71",
+        "type": "mqtt out",
+        "z": "0108719f13dd5d5e",
+        "name": "M. Throttle",
+        "topic": "motor/throttle",
+        "qos": "1",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "b6f23097b7854381",
+        "x": 750,
+        "y": 940,
+        "wires": []
+    },
+    {
+        "id": "24b1997206bb936b",
+        "type": "mqtt out",
+        "z": "0108719f13dd5d5e",
+        "name": "M. Multiplier",
+        "topic": "motor/multiplier",
+        "qos": "1",
+        "retain": "true",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "b6f23097b7854381",
+        "x": 410,
+        "y": 1100,
+        "wires": []
+    },
+    {
+        "id": "5883463125547e18",
+        "type": "function",
+        "z": "0108719f13dd5d5e",
+        "name": "Throttle",
+        "func": "msg.payload = msg.payload.vector.y;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 940,
+        "wires": [
+            [
+                "4bed18ce0a7d48f0"
+            ]
+        ]
+    },
+    {
+        "id": "50d041e672cdde04",
+        "type": "join",
+        "z": "0108719f13dd5d5e",
+        "name": "Join",
+        "mode": "custom",
+        "build": "object",
+        "property": "payload",
+        "propertyType": "msg",
+        "key": "topic",
+        "joiner": "\\n",
+        "joinerType": "str",
+        "accumulate": false,
+        "timeout": "",
+        "count": "2",
+        "reduceRight": false,
+        "reduceExp": "",
+        "reduceInit": "",
+        "reduceInitType": "num",
+        "reduceFixup": "",
+        "x": 430,
+        "y": 1180,
+        "wires": [
+            [
+                "ed6e6b25a9c944e6"
+            ]
+        ]
+    },
+    {
+        "id": "42ad22f4deb0ff76",
+        "type": "mqtt in",
+        "z": "0108719f13dd5d5e",
+        "name": "M. Throttle",
+        "topic": "motor/throttle",
+        "qos": "1",
+        "datatype": "utf8",
+        "broker": "b6f23097b7854381",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 240,
+        "y": 1180,
+        "wires": [
+            [
+                "50d041e672cdde04",
+                "3659659930b77ff0"
+            ]
+        ]
+    },
+    {
+        "id": "edb83fc79064106f",
+        "type": "mqtt in",
+        "z": "0108719f13dd5d5e",
+        "name": "M. Multiplier",
+        "topic": "motor/multiplier",
+        "qos": "1",
+        "datatype": "utf8",
+        "broker": "b6f23097b7854381",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 250,
+        "y": 1240,
+        "wires": [
+            [
+                "6d30f89928ef78cc"
+            ]
+        ]
+    },
+    {
+        "id": "ba3e9d41f0dafd9b",
+        "type": "range",
+        "z": "0108719f13dd5d5e",
+        "minin": "-1",
+        "maxin": "1",
+        "minout": "0",
+        "maxout": "180",
+        "action": "scale",
+        "round": false,
+        "property": "payload",
+        "name": "-1, 1 to 0, 180",
+        "x": 740,
+        "y": 1000,
+        "wires": [
+            [
+                "ae395294c2e47d14"
+            ]
+        ]
+    },
+    {
+        "id": "7da2f67ff4e66744",
+        "type": "function",
+        "z": "0108719f13dd5d5e",
+        "name": "Angle",
+        "func": "msg.payload = msg.payload.vector.x;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 390,
+        "y": 1000,
+        "wires": [
+            [
+                "81635489de9c66ac"
+            ]
+        ]
+    },
+    {
+        "id": "ae395294c2e47d14",
+        "type": "mqtt out",
+        "z": "0108719f13dd5d5e",
+        "name": "M. Angle",
+        "topic": "motor/angle",
+        "qos": "1",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "b6f23097b7854381",
+        "x": 940,
+        "y": 1000,
+        "wires": []
+    },
+    {
+        "id": "3659659930b77ff0",
+        "type": "function",
+        "z": "0108719f13dd5d5e",
+        "name": "Return Value",
+        "func": "var lastVal = context.get('lastVal') || 0;\n\nif (msg.update == 1) {\n    lastVal = msg.payload;\n    context.set('lastVal', lastVal);\n    msg.update = 0;\n}\n\nmsg.payload = lastVal;\nmsg.topic = 'motor/multiplier';\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 630,
+        "y": 1240,
+        "wires": [
+            [
+                "50d041e672cdde04"
+            ]
+        ]
+    },
+    {
+        "id": "77c3c038613f64ca",
+        "type": "loop",
+        "z": "0108719f13dd5d5e",
+        "name": "Loop",
+        "kind": "cond",
+        "count": "",
+        "initial": "1",
+        "step": "1",
+        "condition": "true",
+        "conditionType": "js",
+        "when": "before",
+        "enumeration": "enum",
+        "enumerationType": "msg",
+        "limit": "",
+        "loopPayload": "loop-keep",
+        "finalPayload": "final-last",
+        "x": 1110,
+        "y": 1360,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "6d30f89928ef78cc",
+        "type": "function",
+        "z": "0108719f13dd5d5e",
+        "name": "Update",
+        "func": "msg.update = 1;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 1240,
+        "wires": [
+            [
+                "3659659930b77ff0"
+            ]
+        ]
+    },
+    {
+        "id": "ed6e6b25a9c944e6",
+        "type": "function",
+        "z": "0108719f13dd5d5e",
+        "name": "Calc Speed",
+        "func": "var throttle = parseFloat(msg.payload['motor/throttle']);\nvar multiplier = parseInt(msg.payload['motor/multiplier']);\nmsg.payload = throttle * multiplier;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 1180,
+        "wires": [
+            [
+                "87fa1542d3185313"
+            ]
+        ]
+    },
+    {
+        "id": "87fa1542d3185313",
+        "type": "mqtt out",
+        "z": "0108719f13dd5d5e",
+        "name": "M. Speed",
+        "topic": "motor/speed",
+        "qos": "1",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "b6f23097b7854381",
+        "x": 800,
+        "y": 1180,
+        "wires": []
+    },
+    {
+        "id": "4bed18ce0a7d48f0",
+        "type": "function",
+        "z": "0108719f13dd5d5e",
+        "name": "Filter",
+        "func": "var lastThrottle = context.get('lastThrottle') || 0;\nvar throttle = parseFloat(msg.payload);\n\nif ((throttle - lastThrottle > 0.3) || (lastThrottle - throttle > 0.3)) {\n    lastThrottle = throttle;\n    context.set('lastThrottle', lastThrottle);\n}\n\nmsg.payload = lastThrottle;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 570,
+        "y": 940,
+        "wires": [
+            [
+                "b896cd63f1009d71"
+            ]
+        ]
+    },
+    {
+        "id": "c4cfc7b1560ec229",
+        "type": "rbe",
+        "z": "0108719f13dd5d5e",
+        "name": "Filter",
+        "func": "deadbandEq",
+        "gap": "10",
+        "start": "",
+        "inout": "out",
+        "septopics": false,
+        "property": "payload",
+        "topi": "topic",
+        "x": 645.7142944335938,
+        "y": 766.4285888671875,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "bcb1a181187461bb",
+        "type": "rbe",
+        "z": "0108719f13dd5d5e",
+        "name": "Filter",
+        "func": "deadbandEq",
+        "gap": "10",
+        "start": "",
+        "inout": "out",
+        "septopics": false,
+        "property": "payload",
+        "topi": "topic",
+        "x": 650,
+        "y": 820,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "81635489de9c66ac",
+        "type": "function",
+        "z": "0108719f13dd5d5e",
+        "name": "Filter",
+        "func": "var lastThrottle = context.get('lastThrottle') || 0;\nvar throttle = parseFloat(msg.payload);\n\nif ((throttle - lastThrottle > 0.3) || (lastThrottle - throttle > 0.3)) {\n    lastThrottle = throttle;\n    context.set('lastThrottle', lastThrottle);\n}\n\nmsg.payload = lastThrottle;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 550,
+        "y": 1000,
+        "wires": [
+            [
+                "ba3e9d41f0dafd9b"
+            ]
+        ]
+    },
+    {
+        "id": "525cf9ff7f236ad2",
+        "type": "range",
+        "z": "0108719f13dd5d5e",
+        "minin": "-1",
+        "maxin": "1",
+        "minout": "0",
+        "maxout": "1",
+        "action": "scale",
+        "round": false,
+        "property": "payload",
+        "name": "-1, 1 to 0, 1",
+        "x": 870,
+        "y": 860,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7361cab711b9e943",
+        "type": "ui_spacer",
+        "z": "0108719f13dd5d5e",
+        "name": "spacer",
+        "group": "7fb081f8a1cd04a7",
+        "order": 3,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "713ff4c54c03acf2",
+        "type": "ui_group",
+        "name": "Battery",
+        "tab": "0a3f897f7d60b9b7",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": true,
+        "className": ""
+    },
+    {
+        "id": "a3086d4e4ef3407f",
+        "type": "ui_group",
+        "name": "Map",
+        "tab": "0a3f897f7d60b9b7",
+        "order": 2,
+        "disp": true,
+        "width": "6",
+        "collapse": true,
+        "className": ""
+    },
+    {
+        "id": "7fb081f8a1cd04a7",
+        "type": "ui_group",
+        "name": "Controls",
+        "tab": "3ad4aa0cabde057c",
+        "order": 3,
+        "disp": true,
+        "width": "7",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "b6f23097b7854381",
+        "type": "mqtt-broker",
+        "name": "Server",
+        "broker": "localhost",
+        "port": "1883",
+        "clientid": "alset-node",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "sessionExpiry": ""
+    },
+    {
+        "id": "0a3f897f7d60b9b7",
+        "type": "ui_tab",
+        "name": "Dashboard",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "3ad4aa0cabde057c",
+        "type": "ui_tab",
+        "name": "Driving",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    }
+]
