@@ -1,1 +1,1 @@
-# alset-v3
+# alset-mini
