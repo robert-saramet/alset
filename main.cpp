@@ -19,28 +19,28 @@ struct Controller {
   bool R1;
   bool L1;
   struct {
-	bool Up;
-	bool Down;
-	bool Left;
-	bool Right;
+    bool Up;
+    bool Down;
+    bool Left;
+    bool Right;
   } Dpad;
   bool L3;
-} controller, lastController;
+} controller;
 
 struct State {
   bool ignition;
   int gear;
   struct {
-	bool up;
-	bool down;
-	bool left;
-	bool right;
+    bool up;
+    bool down;
+    bool left;
+    bool right;
   } lights;
-} state, lastState;
+} state;
 
 // throttle and brake from 0 to 255
 // gear from 0 to 4
-// speed = speed * gear
+// net speed = speed * gear
 struct Speed {
   int throttle;
   int brake;
@@ -81,31 +81,17 @@ Controller getController() {
   return c;
 }
 
-State getState() {
-  State s;
-  if (controller.Square && !lastController.Square)
-	s.ignition = !lastState.ignition;
-  if (controller.R1 && !lastController.R1) {
-	s.gear = lastState.gear + 1;
-	if (s.gear > 4) {
-	  s.gear = 4;
-	}
-  } else if (controller.L1 && !lastController.L1) {
-	s.gear = lastState.gear - 1;
-	if (s.gear < 0) {
-	  s.gear = 0;
-	}
-  }
-  if (controller.Dpad.Up && !lastController.Dpad.Up)
-	s.lights.up = !lastState.lights.up;
-  else if (controller.Dpad.Down && !lastController.Dpad.Down)
-	s.lights.down = !lastState.lights.down;
-  else if (controller.Dpad.Left && !lastController.Dpad.Left)
-	s.lights.left = !lastState.lights.left;
-  else if (controller.Dpad.Right && !lastController.Dpad.Right)
-	s.lights.right = !lastState.lights.right;
-  lastState = s;
-  return s;
+void controllerEvent()
+{
+  if(PS4.event.button_down.square)
+    state.ignition = !state.ignition;
+  if(PS4.event.button_down.r1)
+    if(state.gear < 4)
+      state.gear++;
+  if(PS4.event.button_down.l1)
+    if(state.gear > 0)
+      state.gear--;
+  // TODO: handle dpad
 }
 
 Speed getSpeed() {
@@ -119,14 +105,14 @@ Speed getSpeed() {
   if (s.nitro) {
   s.net = s.net * nitroMultiplier;
 }
-	if (s.net > 255) {
-	  s.net = 255;
-	} else if (s.net < -255) {
-	  s.net = -255;
-	}
-	s.net = map(s.net, -255, 255, -100, 100);
+if (s.net > 255) {
+  s.net = 255;
+} else if (s.net < -255) {
+  s.net = -255;
+}
+s.net = map(s.net, -255, 255, -100, 100);
 
-	return s;
+return s;
 }
 
 Motor getMotor() {
@@ -135,17 +121,20 @@ Motor getMotor() {
   m.steering = controller.LStickX;
   m.steering = map(m.steering, -128, 127, 0, 180);
   if (speed.net > 0) {
-	m.power = map(speed.net, 1, 100, minSpeed, topSpeed);
+    m.power = map(speed.net, 1, 100, minSpeed, topSpeed);
   } else if (speed.net < 0) {
-	m.power = map(speed.net, -1, -100, minSpeedRev, topSpeedRev);
+    m.power = map(speed.net, -1, -100, minSpeedRev, topSpeedRev);
   } else {
-	m.power = neutral;
+    m.power = neutral;
   }
+  return m;
 }
 
 void applyMotor() {
-  ESC.writeMicroseconds(motor.power);
-  servo.write(motor.steering);
+  if(motor.ignition)
+    ESC.writeMicroseconds(motor.power);
+  else ESC.writeMicroseconds(neutral);
+  servo.write(motor.steering);  
 }
 
 void resetMotor() {
@@ -153,23 +142,47 @@ void resetMotor() {
   servo.write(90);
 }
 
+void printData() {
+  Serial.print("power: ");
+  Serial.println(motor.power);
+  Serial.print("steering: ");
+  Serial.println(motor.steering);
+  Serial.print("ignition: ");
+  Serial.println(motor.ignition);
+  Serial.print("net speed: ");
+  Serial.println(speed.net);
+  Serial.print("throttle: ");
+  Serial.println(speed.throttle);
+  Serial.print("brake: ");
+  Serial.println(speed.brake);
+  Serial.print("gear: ");
+  Serial.println(speed.gear);
+  Serial.print("nitro: ");
+  Serial.println(speed.nitro);
+  Serial.println("\n");
+}
+
 void setup() {
+  Serial.begin(115200);
   PS4.begin("00:45:E2:D2:4F:E6");
   while (!PS4.isConnected()) {}
   servo.attach(servoPin);
   ESC.attach(ESCPin);
   resetMotor();
   delay(1000);
-  lastController = getController();
-  lastState = {false, 0, {1, 0, 0, 0}};
+  state = {false, 0, {1, 0, 0, 0}};
+  PS4.attach(controllerEvent);
+  PS4.setLed(0, 255, 0);
+  PS4.sendToController();
 }
 
 void loop() {
   if (PS4.isConnected()) {
-	controller = getController();
-	state = getState();
-	speed = getSpeed();
-	motor = getMotor();
-	applyMotor();
+    controller = getController();
+    speed = getSpeed();
+    motor = getMotor();
+    applyMotor();
+    printData();
   } else resetMotor();
+  delay(80);
 }
