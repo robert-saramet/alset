@@ -91,6 +91,8 @@ void controllerEvent()
   if(PS4.event.button_down.l1)
     if(state.gear > 0)
       state.gear--;
+  if(PS4.event.button_down.ps)
+    ESP.deepSleep(0);
   // TODO: handle dpad
 }
 
@@ -119,7 +121,7 @@ Motor getMotor() {
   Motor m;
   m.ignition = state.ignition;
   m.steering = controller.LStickX;
-  m.steering = map(m.steering, -128, 127, 0, 180);
+  m.steering = map(m.steering, -128, 127, 180, 0);
   if (speed.net > 0) {
     m.power = map(speed.net, 1, 100, minSpeed, topSpeed);
   } else if (speed.net < 0) {
