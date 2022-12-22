@@ -1,6 +1,8 @@
 #include <PS4Controller.h>
 #include <ESP32Servo.h>
 
+#undef DEBUG
+
 Servo servo;
 Servo ESC;
 
@@ -91,8 +93,10 @@ void controllerEvent()
   if(PS4.event.button_down.l1)
     if(state.gear > 0)
       state.gear--;
-  if(PS4.event.button_down.ps)
+  if(PS4.event.button_down.ps){
+    resetMotor();
     ESP.deepSleep(0);
+  }
   // TODO: handle dpad
 }
 
@@ -145,23 +149,25 @@ void resetMotor() {
 }
 
 void printData() {
-  Serial.print("power: ");
-  Serial.println(motor.power);
-  Serial.print("steering: ");
-  Serial.println(motor.steering);
-  Serial.print("ignition: ");
-  Serial.println(motor.ignition);
-  Serial.print("net speed: ");
-  Serial.println(speed.net);
-  Serial.print("throttle: ");
-  Serial.println(speed.throttle);
-  Serial.print("brake: ");
-  Serial.println(speed.brake);
-  Serial.print("gear: ");
-  Serial.println(speed.gear);
-  Serial.print("nitro: ");
-  Serial.println(speed.nitro);
-  Serial.println("\n");
+  #ifdef DEBUG
+    Serial.print("power: ");
+    Serial.println(motor.power);
+    Serial.print("steering: ");
+    Serial.println(motor.steering);
+    Serial.print("ignition: ");
+    Serial.println(motor.ignition);
+    Serial.print("net speed: ");
+    Serial.println(speed.net);
+    Serial.print("throttle: ");
+    Serial.println(speed.throttle);
+    Serial.print("brake: ");
+    Serial.println(speed.brake);
+    Serial.print("gear: ");
+    Serial.println(speed.gear);
+    Serial.print("nitro: ");
+    Serial.println(speed.nitro);
+    Serial.println("\n");
+  #endif
 }
 
 void setup() {
